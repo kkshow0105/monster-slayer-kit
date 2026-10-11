@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1efe8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="要你命3000" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="description" content="输入任意两个值，自动计算起始价格、目标价格或涨跌幅。" />
+    <link rel="manifest" href="../../manifest.webmanifest" />
+    <link rel="icon" href="../../assets/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="../../assets/styles.css" />
+    <title>涨跌幅计算器 · 要你命3000</title>
+  </head>
+  <body>
+    <div class="site-shell calculator-shell">
+      <header class="topbar">
+        <a class="back-link" href="../../index.html" aria-label="返回工具首页">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+          <span>全部工具</span>
+        </a>
+        <a class="brand-mark brand-mark-small" href="../../index.html" aria-label="要你命3000 首页">
+          <img src="../../assets/icon.svg" alt="" width="30" height="30" />
+        </a>
+      </header>
+
+      <main class="calculator-main">
+        <section class="tool-heading" aria-labelledby="calculator-title">
+          <p class="eyebrow">PRICE CHANGE</p>
+          <h1 id="calculator-title">涨跌幅计算器</h1>
+          <p>任意填写两项，第三项会自动得出。</p>
+        </section>
+
+        <section class="calculator-card" aria-label="涨跌幅计算区域">
+          <div class="relation-line" aria-hidden="true">
+            <span>A</span><i>→</i><span>B</span><i>=</i><span>C%</span>
+          </div>
+
+          <div class="price-row">
+            <label class="field-card" data-field-card="a">
+              <span class="field-head"><span>起始价格</span><small>A</small></span>
+              <span class="input-wrap">
+                <input id="price-a" name="price-a" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="status-message" />
+              </span>
+              <span class="field-role" data-role="a">输入</span>
+            </label>
+
+            <span class="direction-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M14 7l5 5-5 5" /></svg>
+            </span>
+
+            <div class="price-b-group">
+              <label class="field-card" data-field-card="b">
+                <span class="field-head"><span>目标价格</span><small>B</small></span>
+                <span class="input-wrap">
+                  <input id="price-b" name="price-b" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="status-message" />
+                </span>
+                <span class="field-role" data-role="b">输入</span>
+              </label>
+              <div id="price-b-drop" class="price-b-drop" hidden>
+                <span>B 下跌 1%</span>
+                <output id="price-b-drop-value" for="price-b"></output>
+              </div>
+            </div>
+          </div>
+
+          <div class="change-connector" aria-hidden="true"><span></span></div>
+
+          <label class="field-card change-card" data-field-card="c">
+            <span class="field-head"><span>涨跌幅</span><small>C</small></span>
+            <span class="input-wrap percent-wrap">
+              <input id="change-c" name="change-c" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="status-message" />
+              <span class="input-suffix">%</span>
+            </span>
+            <span class="field-role" data-role="c">输入</span>
+          </label>
+
+          <div class="status-row">
+            <p id="status-message" class="status-message" aria-live="polite">先填写任意两项</p>
+            <button id="clear-button" class="clear-button" type="button" disabled>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M9 7V5h6v2M8 10v7M12 10v7M16 10v7M7 7l1 13h8l1-13" /></svg>
+              清空
+            </button>
+          </div>
+        </section>
+
+        <p class="privacy-note">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5.5 5.8v5.3c0 4.2 2.7 8 6.5 9.9 3.8-1.9 6.5-5.7 6.5-9.9V5.8L12 3Z" /><path d="m9 12 2 2 4-4" /></svg>
+          所有计算都在本机完成
+        </p>
+      </main>
+    </div>
+    <script src="../../assets/app.js" defer></script>
+    <script src="./calculator.js" defer></script>
+  </body>
+</html>

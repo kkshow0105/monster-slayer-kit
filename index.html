@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1efe8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="要你命3000" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="description" content="要你命3000：简单、顺手、在本地运行的个人实用工具合集。" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <title>要你命3000 · Monster Slayer's Kit</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand-mark" href="./index.html" aria-label="要你命3000 首页">
+          <img src="./assets/icon.svg" alt="" width="34" height="34" />
+        </a>
+        <span class="topbar-note">个人工具箱</span>
+      </header>
+
+      <main class="home-main">
+        <section class="intro" aria-labelledby="page-title">
+          <p class="eyebrow">MONSTER SLAYER'S KIT</p>
+          <h1 id="page-title">要你命3000</h1>
+          <p class="intro-copy">把常用的小事，做得更快一点。</p>
+        </section>
+
+        <section class="tools-section" aria-labelledby="tools-title">
+          <div class="section-heading">
+            <h2 id="tools-title">实用工具</h2>
+            <span>2 个</span>
+          </div>
+
+          <a class="tool-card" href="./tools/change-calculator/index.html">
+            <div class="tool-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 7.5h11M13 4.5l3 3-3 3M19 16.5H8M11 13.5l-3 3 3 3" />
+              </svg>
+            </div>
+            <div class="tool-card-body">
+              <p class="tool-card-kicker">价格工具</p>
+              <h3>涨跌幅计算器</h3>
+              <p>输入任意两项，立即算出起始价、目标价或涨跌幅。</p>
+              <div class="formula-preview" aria-label="计算示例：10 到 11，涨幅为 10%">
+                <small>计算示例</small>
+                <span>10</span><i>→</i><span>11</span><i>=</i><strong>+10%</strong>
+              </div>
+            </div>
+            <span class="tool-card-arrow" aria-hidden="true">↗</span>
+          </a>
+
+          <a class="tool-card" href="./tools/currency-converter/index.html">
+            <div class="tool-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7 7h10M7 12h7M7 17h10M17 4l3 3-3 3M17 14l3 3-3 3" />
+              </svg>
+            </div>
+            <div class="tool-card-body">
+              <p class="tool-card-kicker">日常换算</p>
+              <h3>汇率计算器</h3>
+              <p>日元、人民币、美元快速换算。</p>
+              <div class="formula-preview" aria-label="汇率换算预览">
+                <small>三币种</small>
+                <span>JPY</span><i>↔</i><span>CNY</span><i>↔</i><strong>USD</strong>
+              </div>
+            </div>
+            <span class="tool-card-arrow" aria-hidden="true">↗</span>
+          </a>
+        </section>
+
+        <p class="version-note" data-app-version>要你命3000</p>
+      </main>
+
+      <footer class="site-footer">数据只在当前设备中处理</footer>
+    </div>
+    <script src="./assets/app.js" defer></script>
+  </body>
+</html>
