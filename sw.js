@@ -1,5 +1,5 @@
 // 发布新版本时只需递增这里的版本号，并把整个项目一起上传。
-const APP_VERSION = 'v1.1.1';
+const APP_VERSION = 'v1.2.0';
 const CACHE_PREFIX = `monster-slayer-kit:${encodeURIComponent(self.registration.scope)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const APP_SHELL = [
@@ -15,6 +15,10 @@ const APP_SHELL = [
   './tools/change-calculator/calculator.js',
   './tools/currency-converter/index.html',
   './tools/currency-converter/currency-converter.js',
+  './tools/atr-calculator/index.html',
+  './tools/atr-calculator/atr-core.js',
+  './tools/atr-calculator/atr-calculator.js',
+  './tools/atr-calculator/atr-calculator.css',
 ];
 
 self.addEventListener('install', (event) => {
