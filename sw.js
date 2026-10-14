@@ -1,5 +1,5 @@
 // 发布新版本时只需递增这里的版本号，并把整个项目一起上传。
-const APP_VERSION = 'v1.2.0';
+const APP_VERSION = 'v1.3.0';
 const CACHE_PREFIX = `monster-slayer-kit:${encodeURIComponent(self.registration.scope)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const APP_SHELL = [

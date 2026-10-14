@@ -1,94 +1,114 @@
-/* 只作用于 ATR 页面，沿用公共颜色、字体与卡片。 */
-.atr-shell { max-width: 820px; }
-.atr-shell [hidden] { display: none !important; }
-.atr-shell .status-message { max-width: none; line-height: 1.6; }
-.atr-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.atr-field { display: block; min-width: 0; color: var(--ink-soft); font-size: 13px; font-weight: 600; }
-.atr-field small { color: var(--ink-faint); font-size: 11px; font-weight: 400; }
+/* ATR-only structures; controls and colors are shared with the other tools. */
+.atr-shell { max-width: var(--page-width); }
+.atr-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; margin-bottom: 16px; }
+.atr-new-plan { margin-top: 0; scroll-margin-top: 16px; }
+.atr-shell.has-plans .atr-new-plan { margin-top: 24px; }
+.atr-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#atr-form > .atr-fields > .atr-field:nth-child(-n+2) { grid-column: 1 / -1; }
+.atr-field { display: block; min-width: 0; color: var(--ink-soft); font-size: 13px; font-weight: 500; }
+.atr-field small { color: var(--ink-soft); font-size: 12px; font-weight: 400; }
 .atr-field input {
-  display: block; width: 100%; min-width: 0; min-height: 48px; margin-top: 8px;
-  border: 1px solid var(--line); border-radius: var(--radius-md);
-  padding: 10px 12px; background: var(--surface-muted); color: var(--ink); font-size: 16px;
+  display: block; width: 100%; min-width: 0; height: 48px; margin-top: 4px;
+  border: 1px solid var(--line); border-radius: var(--radius-md); padding: 8px 12px;
+  background: var(--surface-muted); color: var(--ink); font-size: 18px; font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
-.atr-field input:focus { outline: 3px solid var(--accent-soft); border-color: var(--accent); background: #fff; }
-.atr-main-field input { font-size: 26px; font-weight: 700; }
-.atr-meta { margin: 18px 0 10px; font-size: 13px; line-height: 1.7; color: var(--ink-soft); overflow-wrap: anywhere; }
-.atr-hint { color: var(--ink-faint); font-size: 12px; line-height: 1.65; margin: 10px 0; }
-.atr-stack { display: grid; gap: 12px; }
+.atr-field input::placeholder { color: var(--ink-faint); font-size: 16px; font-weight: 400; opacity: 1; }
+.atr-field input:focus { outline: none; box-shadow: var(--focus-ring); border-color: var(--accent); background: var(--surface); }
+.atr-main-field input { font-size: 22px; font-weight: 600; }
+.atr-meta { margin: 12px 0 8px; color: var(--ink-soft); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.atr-hint { margin: 4px 0; color: var(--ink-soft); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.atr-stack { display: grid; gap: 8px; }
+#draft-levels { gap: 0; margin-top: 12px; border-top: 1px solid var(--line); }
 .atr-level {
-  padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-lg);
-  background: var(--surface-muted); min-width: 0;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) 44px; gap: 8px;
+  min-width: 0; padding: 12px 0; border-bottom: 1px solid var(--line);
 }
-.atr-level-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.atr-level-head h3 { margin: 0; font-size: 14px; }
-.atr-level .atr-fields { gap: 12px; }
-.atr-result { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
-.atr-price { font-size: 27px; line-height: 1.25; color: var(--accent); font-weight: 750; overflow-wrap: anywhere; }
-.atr-drop { font-size: 13px; color: var(--down); }
-.atr-button {
-  min-height: 44px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px;
-  color: var(--ink-soft); background: var(--surface); font-size: 14px; cursor: pointer; line-height: 1.5;
-}
-.atr-button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.atr-button:focus-visible, .atr-plan-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.atr-button:disabled { opacity: .45; cursor: default; }
-.atr-primary { width: 100%; color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 600; }
-.atr-primary:hover:not(:disabled) { color: #fff; background: #214aab; }
+.atr-level-head { display: contents; }
+.atr-level-head h3 { grid-column: 1; grid-row: 1; align-self: center; margin: 0; color: var(--ink); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.atr-level-head button { grid-column: 3; grid-row: 1; align-self: end; min-width: 44px; padding: 8px 0; border-color: transparent; background: transparent; color: var(--ink-soft); font-size: 12px; }
+.atr-level .atr-fields { grid-column: 2; grid-row: 1; gap: 8px; }
+.atr-level .atr-field { font-size: 12px; }
+.atr-level .atr-field input { height: 44px; padding: 8px; font-size: 18px; }
+.atr-result { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 8px 0; font-variant-numeric: tabular-nums; }
+.atr-level .atr-result { grid-column: 2 / -1; margin: 0; }
+.atr-level .atr-price { font-size: 20px; }
+.atr-price { color: var(--accent); font-size: 26px; line-height: 1.25; font-weight: 650; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.atr-drop[data-tone="up"] { color: var(--up); }
+.atr-drop[data-tone=""], .atr-price[data-empty="true"] { color: var(--ink-faint); }
+.atr-drop[data-tone="flat"] { color: var(--flat); }
+.atr-drop { color: var(--down); font-size: 12px; font-variant-numeric: tabular-nums; }
+.atr-primary { color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.atr-primary:hover:not(:disabled), .atr-primary:active:not(:disabled) { color: #fff; background: #244faa; border-color: #244faa; }
 .atr-danger { color: var(--down); }
-#add-level { width: 100%; margin-top: 12px; border-style: dashed; }
-.atr-preview-footer { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 20px; }
+.atr-subtle { color: var(--ink-soft); background: transparent; border-color: transparent; font-size: 12px; }
+#add-level { width: 100%; margin-top: 8px; color: var(--accent); border-style: dashed; }
+.atr-preview-footer { margin-top: 16px; padding: 12px; border-radius: var(--radius-lg); background: var(--surface-muted); }
+.atr-preview-footer .atr-meta { margin: 0 0 8px; color: var(--ink); font-weight: 600; }
+#position-total { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#position-total strong { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .atr-preview-footer .status-message { margin-bottom: 12px; }
-.atr-notice {
-  padding: 12px 14px; color: var(--down); border: 1px solid rgba(181,69,63,.25);
-  border-radius: 10px; background: var(--down-soft); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere;
-}
-.atr-section { margin-top: 32px; scroll-margin-top: 20px; }
-.atr-empty { padding: 22px 18px; border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); color: var(--ink-faint); font-size: 14px; }
-.atr-plan-card { padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface); }
-.atr-plan-card h3 { margin: 0; font-size: 22px; overflow-wrap: anywhere; }
-.atr-badge { display: inline-block; margin-top: 10px; color: var(--accent); font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--accent-soft); }
+.atr-preview-footer .atr-primary { width: 100%; }
+.atr-notice { padding: 12px; border: 1px solid #f0c5c0; border-radius: var(--radius-md); color: var(--down); background: var(--down-soft); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.atr-position-warning { color: var(--warning); background: var(--warning-soft); border-color: #eddcb6; margin: 8px 0; }
+#current-section { margin-top: 16px; }
+.atr-section { margin-top: 24px; scroll-margin-top: 16px; }
+.atr-empty { padding: 16px; border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); color: var(--ink-soft); background: var(--surface); font-size: 13px; }
+.atr-plan-card { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface); }
+.atr-plan-card h3 { margin: 0; color: var(--ink); font-size: 18px; line-height: 1.4; font-weight: 650; overflow-wrap: anywhere; }
+.atr-badge { display: inline-block; margin-top: 8px; padding: 4px 8px; border-radius: 6px; color: var(--accent); background: var(--accent-soft); font-size: 12px; }
 .atr-badge-ended { color: var(--ink-soft); background: var(--surface-muted); }
-.atr-execution {
-  display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 14px; cursor: default;
-  padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-muted);
-}
-.atr-execution:focus-within { outline: 3px solid var(--accent-soft); border-color: var(--accent); }
-.atr-execution-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; line-height: 1.5; }
-.atr-execution.is-complete { background: var(--up-soft); border-color: rgba(20,122,85,.25); }
-.atr-execution.is-complete .atr-price { color: var(--accent); }
-.atr-execution.is-complete .atr-execution-head strong { color: var(--up); }
-.atr-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 16px; margin: 18px 0; border-radius: 12px; background: var(--accent-soft); }
-.atr-metrics p { margin: 0; font-size: 12px; color: var(--ink-soft); }
-.atr-metrics strong { display: block; margin-top: 5px; color: var(--ink); font-size: 20px; overflow-wrap: anywhere; }
-.atr-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.atr-list-heading { font-size: 13px; color: var(--ink-soft); margin: 20px 0 10px; }
-.atr-plan-link { width: 100%; min-width: 0; text-align: left; border: 1px solid var(--line); border-radius: 12px; padding: 16px; color: var(--ink); background: var(--surface); cursor: pointer; }
-.atr-plan-link[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.atr-plan-link strong { display: block; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
-.atr-plan-link span { display: block; color: var(--ink-soft); font-size: 12px; margin-top: 7px; line-height: 1.7; }
-.atr-action-message { color: var(--ink-soft); font-size: 13px; line-height: 1.6; margin: 18px 0 0; }
-.atr-action-message[data-tone="error"] { color: var(--down); }
-.atr-local-note { margin-top: 26px; }
-@media (max-width: 480px) {
-  .atr-shell .tool-heading h1 { font-size: clamp(30px, 8vw, 38px); }
-  .atr-fields { gap: 12px 10px; }
-  #atr-form > .atr-fields > .atr-field:first-child, #atr-form > .atr-fields > .atr-field:nth-child(2) { grid-column: 1 / -1; }
-  .atr-level { padding: 14px 12px; }
-  .atr-plan-card { padding: 18px 14px; border-radius: 22px; }
-  .atr-execution { padding: 14px 12px; gap: 10px; }
-  .atr-price { font-size: 26px; }
-}
-
-/* 成交记录增量交互：保持原卡片、间距和色彩体系。 */
-.atr-subtle { background: transparent; font-size: 12px; padding: 8px 10px; }
-.atr-execution-mark { color: var(--ink-faint); font-size: 14px; font-weight: 700; line-height: 24px; text-align: center; }
-.atr-execution.is-complete .atr-execution-mark { color: var(--up); }
-.atr-next-info { padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; margin: 0 0 18px; background: var(--surface-muted); }
+.atr-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px; margin: 12px 0; border-radius: var(--radius-lg); background: var(--accent-soft); }
+.atr-metrics p { display: flex; flex-direction: column; justify-content: space-between; margin: 0; color: var(--ink-soft); font-size: 12px; }
+.atr-metrics strong { display: block; margin-top: 4px; color: var(--ink); font-size: 20px; line-height: 1.2; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.atr-next-info { padding: 12px 0; margin-bottom: 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .atr-next-info p { margin: 4px 0; }
-.atr-trade-editor { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
-.atr-trade-editor .atr-actions { margin-top: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.atr-next-info .atr-meta { color: var(--ink); font-weight: 500; }
+.atr-execution { padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-muted); }
+.atr-execution-body { display: grid; gap: 4px; min-width: 0; }
+.atr-execution-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; font-size: 13px; }
+.atr-execution-head strong { color: var(--ink-soft); font-size: 12px; font-weight: 600; }
+.atr-execution.is-complete { border-color: #cee7d9; background: var(--up-soft); }
+.atr-execution.is-complete .atr-execution-head strong { color: var(--up); }
+.atr-execution-main { display: grid; align-items: center; gap: 12px; min-width: 0; }
+.atr-execution-main.has-action { grid-template-columns: minmax(0, 1fr) auto; }
+.atr-execution-price { min-width: 0; }
+.atr-execution .atr-price-label { margin-bottom: 0; }
+.atr-execution-main:not(.has-action) .atr-result { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.atr-execution .atr-result { display: grid; justify-items: start; gap: 4px; margin: 0; }
+.atr-price-label { display: block; margin: 0 0 4px; color: var(--ink-soft); font-size: 12px; }
+.atr-execution-meta, .atr-record-meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; color: var(--ink-soft); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.atr-execution-meta { justify-content: space-between; }
+.atr-record-meta { padding-top: 8px; border-top: 1px solid var(--line); }
+.atr-missing-price { color: var(--ink-soft); font-size: 16px; }
+.atr-invalid-target { color: var(--warning); margin: 0; }
+.atr-execution-action { display: flex; justify-content: flex-end; }
+.atr-execution-action .atr-button { padding-inline: 12px; }
+.atr-execution:focus-within { border-color: var(--accent); }
+.atr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.atr-list-heading { margin: 16px 0 8px; color: var(--ink-soft); font-size: 13px; font-weight: 500; }
+.atr-plan-link { width: 100%; min-width: 0; padding: 12px; text-align: left; border: 1px solid var(--line); border-radius: var(--radius-lg); color: var(--ink); background: var(--surface); }
+.atr-plan-link[aria-pressed="true"] { border-color: #b9cbf4; background: var(--accent-soft); }
+.atr-plan-link strong { display: block; font-size: 14px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+.atr-plan-link span { display: block; margin-top: 4px; color: var(--ink-soft); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.atr-action-message { margin: 12px 0 0; color: var(--ink-soft); font-size: 13px; overflow-wrap: anywhere; }
+.atr-action-message:empty { display: none; }
+.atr-action-message[data-tone="error"] { color: var(--down); }
+.atr-local-note { margin-top: 24px; }
+.atr-trade-editor { margin-top: 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.atr-trade-editor .atr-field input { font-size: 18px; }
+.atr-trade-editor .atr-actions { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-top: 8px; }
+.atr-trade-editor .atr-primary { width: 100%; }
 .atr-trade-editor .status-message:empty, .atr-trade-editor .atr-hint:empty { display: none; }
-.atr-record-message { margin-bottom: 0; }
-.atr-corrections { margin-top: 12px; font-size: 12px; color: var(--ink-soft); overflow-wrap: anywhere; }
-.atr-corrections summary { padding: 10px 0; min-height: 44px; cursor: pointer; }
+.atr-record-message { margin-top: 8px; }
+.atr-corrections { margin-top: 0; color: var(--ink-soft); font-size: 12px; overflow-wrap: anywhere; }
+.atr-corrections summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: var(--accent); }
+@media (max-width: 360px) {
+  .atr-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .atr-level { grid-template-columns: minmax(0, 1fr) 44px; }
+  .atr-level-head h3 { grid-column: 1; grid-row: 1; }
+  .atr-level-head button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  .atr-level .atr-fields { grid-column: 1; grid-row: 2; }
+  .atr-level .atr-result { grid-column: 1 / -1; grid-row: 3; }
+  .atr-execution { padding: 8px; }
+}

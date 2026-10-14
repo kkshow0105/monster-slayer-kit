@@ -49,7 +49,8 @@
     currencies.forEach((currency) => {
       const isSource = currency === sourceCurrency;
       cards[currency].classList.toggle('is-source', isSource);
-      roles[currency].textContent = isSource ? '当前输入' : '可输入';
+      cards[currency].classList.toggle('is-derived', Boolean(sourceCurrency) && !isSource && fields[currency].value !== '');
+      roles[currency].textContent = isSource ? '当前输入' : sourceCurrency && fields[currency].value !== '' ? '自动换算' : '';
     });
   }
 
@@ -64,13 +65,26 @@
       return;
     }
     const updated = new Date(rates.fetchedAt);
-    const updatedText = Number.isNaN(updated.getTime()) ? '' : ` · 上次更新 ${updated.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
     const jpyDate = rates.jpyDate || rates.date;
     const usdDate = rates.usdDate || rates.date;
-    const dateText = jpyDate === usdDate
-      ? `汇率日期：${jpyDate}`
-      : `JPY 日期：${jpyDate} · USD 日期：${usdDate}`;
-    rateDate.textContent = `最新参考汇率：1 JPY = ${formatRate(rates.jpyCny, 6)} CNY · 1 USD = ${formatRate(rates.usdCny, 4)} CNY · ${dateText}${updatedText}`;
+    const row = (label, value) => {
+      const line = document.createElement('div');
+      line.className = 'rate-detail';
+      const name = document.createElement('span');
+      name.textContent = label;
+      const text = document.createElement('span');
+      text.textContent = value;
+      line.append(name, text);
+      return line;
+    };
+    rateDate.replaceChildren(
+      row('1 JPY', formatRate(rates.jpyCny, 6) + ' CNY'),
+      row('1 USD', formatRate(rates.usdCny, 4) + ' CNY'),
+      row('汇率日期', jpyDate === usdDate ? jpyDate : 'JPY ' + jpyDate + ' / USD ' + usdDate),
+    );
+    if (!Number.isNaN(updated.getTime())) {
+      rateDate.append(row('上次更新', updated.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })));
+    }
   }
 
   function saveRates(data) {
@@ -95,11 +109,13 @@
   function calculateFrom(source) {
     if (!rates) {
       setStatus('暂时无法获取汇率，请联网后重试。', 'error');
+      updateFieldState();
       return;
     }
     const amount = parseAmount(fields[source].value);
     if (amount === null) {
       currencies.filter((currency) => currency !== source).forEach((currency) => { fields[currency].value = ''; });
+      updateFieldState();
       if (fields[source].value.trim()) setStatus('请输入有效的非负数金额。', 'error');
       return;
     }
@@ -113,6 +129,7 @@
     currencies.filter((currency) => currency !== source).forEach((currency) => {
       fields[currency].value = formatAmount(values[currency], currency);
     });
+    updateFieldState();
   }
 
   async function responseRate(from) {

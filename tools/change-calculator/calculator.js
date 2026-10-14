@@ -49,7 +49,7 @@
     Object.keys(fields).forEach((key) => {
       const isDerived = key === derivedKey && fields[key].value !== '';
       cards[key].classList.toggle('is-derived', isDerived);
-      roles[key].textContent = isDerived ? '自动计算' : '输入';
+      roles[key].textContent = isDerived ? '自动计算 · 可编辑' : '';
     });
 
     cards.c.classList.remove('is-up', 'is-down', 'is-flat');
@@ -77,7 +77,7 @@
     Object.values(cards).forEach((card) => card.classList.remove('has-error'));
     if (manualOrder.length < 2) {
       derivedKey = null;
-      setStatus('先填写任意两项');
+      setStatus(manualOrder.length === 1 && fields[manualOrder[0]].value.trim() ? '再填写一项即可计算' : '');
       updateFieldStates();
       return;
     }
@@ -144,8 +144,7 @@
     fields[missingKey].value = formatNumber(result, missingKey === 'c');
     const change = parseValue(fields.c.value);
     const tone = change > 0 ? 'up' : change < 0 ? 'down' : 'flat';
-    const description = missingKey === 'c' ? '涨跌幅' : labels[missingKey];
-    setStatus(`${description}已自动计算`, tone);
+    setStatus('可继续编辑任意两项', tone);
     updateFieldStates();
   }
 
@@ -169,7 +168,7 @@
     manualOrder.length = 0;
     derivedKey = null;
     Object.values(cards).forEach((card) => card.classList.remove('has-error'));
-    setStatus('先填写任意两项');
+    setStatus('');
     updateFieldStates();
     fields.a.focus();
   });

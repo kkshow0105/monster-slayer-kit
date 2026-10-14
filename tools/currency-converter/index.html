@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f1efe8" />
+    <meta name="theme-color" content="#f5f6f8" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="要你命3000" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -28,49 +28,44 @@
 
       <main class="calculator-main">
         <section class="tool-heading" aria-labelledby="currency-title">
-          <p class="eyebrow">CURRENCY CONVERTER</p>
           <h1 id="currency-title">汇率计算器</h1>
-          <p>输入任意一种金额，另外两种会立即换算。</p>
+          <p>输入一种金额，自动换算另外两种</p>
         </section>
 
         <section class="calculator-card currency-card" aria-label="汇率计算区域">
           <div class="currency-stack">
             <label class="field-card currency-field" data-field-card="JPY">
-              <span class="field-head"><span>JPY · 日元</span><small>¥ JPY</small></span>
+              <span class="field-head"><span>JPY</span><small>日元</small></span>
               <span class="input-wrap">
-                <input id="amount-jpy" name="amount-jpy" type="text" inputmode="decimal" autocomplete="off" placeholder="输入金额" aria-describedby="rate-status" />
+                <input id="amount-jpy" name="amount-jpy" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="rate-status" />
                 <span class="input-suffix">¥</span>
               </span>
-              <span class="field-role" data-role="JPY">可输入</span>
+              <span class="field-role" data-role="JPY"></span>
             </label>
-
-            <div class="currency-connector" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v16M8 8l4-4 4 4M16 16l-4 4-4-4" /></svg></div>
 
             <label class="field-card currency-field" data-field-card="CNY">
-              <span class="field-head"><span>CNY · 人民币</span><small>¥ CNY</small></span>
+              <span class="field-head"><span>CNY</span><small>人民币</small></span>
               <span class="input-wrap">
-                <input id="amount-cny" name="amount-cny" type="text" inputmode="decimal" autocomplete="off" placeholder="输入金额" aria-describedby="rate-status" />
+                <input id="amount-cny" name="amount-cny" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="rate-status" />
                 <span class="input-suffix">¥</span>
               </span>
-              <span class="field-role" data-role="CNY">可输入</span>
+              <span class="field-role" data-role="CNY"></span>
             </label>
 
-            <div class="currency-connector" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v16M8 8l4-4 4 4M16 16l-4 4-4-4" /></svg></div>
-
             <label class="field-card currency-field" data-field-card="USD">
-              <span class="field-head"><span>USD · 美元</span><small>$ USD</small></span>
+              <span class="field-head"><span>USD</span><small>美元</small></span>
               <span class="input-wrap">
-                <input id="amount-usd" name="amount-usd" type="text" inputmode="decimal" autocomplete="off" placeholder="输入金额" aria-describedby="rate-status" />
+                <input id="amount-usd" name="amount-usd" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="rate-status" />
                 <span class="input-suffix">$</span>
               </span>
-              <span class="field-role" data-role="USD">可输入</span>
+              <span class="field-role" data-role="USD"></span>
             </label>
           </div>
 
           <div class="status-row currency-status">
             <div class="currency-status-copy">
               <p id="rate-status" class="status-message" aria-live="polite">正在获取最新参考汇率…</p>
-              <p id="rate-date" class="rate-date">汇率日期：--</p>
+              <div id="rate-date" class="rate-date" aria-live="polite">汇率日期：--</div>
             </div>
             <button id="refresh-rates" class="refresh-button" type="button">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-4M4 5v4h4M4 13a8 8 0 0 0 14.9 4M20 19v-4h-4" /></svg>
@@ -83,6 +78,7 @@
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5.5 5.8v5.3c0 4.2 2.7 8 6.5 9.9 3.8-1.9 6.5-5.7 6.5-9.9V5.8L12 3Z" /><path d="m9 12 2 2 4-4" /></svg>
           金额只在当前设备中处理
         </p>
+        <p class="version-note" data-app-version>要你命3000</p>
       </main>
     </div>
     <script src="../../assets/app.js" defer></script>

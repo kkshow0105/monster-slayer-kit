@@ -34,7 +34,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
       let body = await fs.readFile(file);
       if (file === path.join(root, 'sw.js') && nextVersion) {
-        body = Buffer.from(body.toString().replace('v1.2.0', 'v1.2.1-test'));
+        body = Buffer.from(body.toString().replace('v1.3.0', 'v1.3.1-test'));
       }
       const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
         '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
@@ -63,6 +63,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     const prices = () => page.locator('[data-preview-price]').allTextContents();
     const generate = () => page.getByRole('button', { name: '生成补仓明细单', exact: true }).click();
     const fill = async (name = '科创50ETF', code = '00588000', price = '0.583', atr = '0.026') => {
+      if (!await page.locator('#new-plan').isVisible()) await page.locator('#toggle-draft').click();
       await page.locator('#asset-name').fill(name);
       await page.locator('#asset-code').fill(code);
       await page.locator('#opening-price').fill(price);
@@ -115,7 +116,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     assert.equal(plans[0].snapshot.openingPosition, '12.5');
     assert.equal(plans[0].snapshot.levels[0].position, '7.5');
     await confirmTrade(page, 0);
-    assert.match(await page.locator('.atr-metrics').textContent(), /已执行计划仓位20%/);
+    assert.match(await page.locator('.atr-metrics').textContent(), /已执行仓位20%/);
     await page.reload();
     assert.equal((await stored()).plans[0].executions[0].actualPrice, '0.5752');
     assert.equal(await page.locator('#current-plan input').count(), 0);
@@ -158,8 +159,8 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     const executedRow = (index) => page.locator('[data-execution-level="' + index + '"]');
     assert.deepEqual((await stored()).plans[0].dynamic.levels.map((level) => level.priceDisplay),
       ['1.0908', '1.0736', '1.0564']);
-    await executedRow(1).getByRole('button', { name: '确认补仓', exact: true }).click();
-    assert.match(await executedRow(1).textContent(), /请先确认上一档补仓记录/);
+    assert.equal(await executedRow(1).getByRole('button', { name: '确认补仓', exact: true }).isDisabled(), true);
+    assert.match(await executedRow(1).getByRole('button', { name: '确认补仓', exact: true }).getAttribute('title'), /请先确认上一档补仓记录/);
     await executedRow(0).getByRole('button', { name: '确认补仓', exact: true }).click();
     assert.equal(await executedRow(0).locator('input').inputValue(), '1.0908');
     await executedRow(0).getByRole('button', { name: '取消', exact: true }).click();
@@ -205,6 +206,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     assert.equal(JSON.stringify((await stored()).plans.filter((plan) => plan.id !== sampleId)), otherPlans);
     // 清空取消与确认；默认档位、仓位恢复，已保存成交和历史完全不变。
     const beforeReset = await stored();
+    await page.locator('#toggle-draft').click();
     await page.locator('#atr-period').fill('20');
     await page.locator('#opening-position').fill('50');
     await page.locator('#add-level').click();
@@ -253,7 +255,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       const input = page.locator('#opening-price');
       await input.focus();
-      assert.equal(await input.evaluate((node) => getComputedStyle(node).fontSize), '26px');
+      assert.equal(await input.evaluate((node) => getComputedStyle(node).fontSize), '22px');
       const hitArea = await page.locator('.atr-execution').first().boundingBox();
       assert.ok(hitArea.width > 240 && hitArea.height >= 44);
     }
@@ -284,7 +286,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       page.getByRole('button', { name: '立即更新', exact: true }).click(),
     ]);
     assert.deepEqual(await stored(), before);
-    await page.waitForFunction(() => document.querySelector('[data-app-version]').textContent.includes('v1.2.1-test'));
+    await page.waitForFunction(() => document.querySelector('[data-app-version]').textContent.includes('v1.3.1-test'));
     const versions = await page.evaluate(() => caches.keys());
     assert.equal(versions.filter((name) => name.startsWith('monster-slayer-kit:')).length, 1);
     nextVersion = false;
@@ -339,8 +341,8 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     await oldPage.goto(atrUrl);
     assert.match(await oldPage.locator('[data-execution-level="0"]').textContent(), /实际价格未记录/);
     assert.equal(await oldPage.evaluate((storageKey) => localStorage.getItem(storageKey), key), oldRaw);
-    await oldPage.locator('[data-execution-level="1"]').getByRole('button', { name: '确认补仓', exact: true }).click();
-    assert.match(await oldPage.locator('[data-execution-level="1"]').textContent(), /请先补录/);
+    assert.equal(await oldPage.locator('[data-execution-level="1"]').getByRole('button', { name: '确认补仓', exact: true }).isDisabled(), true);
+    assert.match(await oldPage.locator('[data-execution-level="1"]').getByRole('button', { name: '确认补仓', exact: true }).getAttribute('title'), /请先补录/);
     await oldPage.getByRole('button', { name: '补录实际价格', exact: true }).click();
     assert.equal(await oldPage.locator('.atr-trade-editor input').inputValue(), '');
     await oldPage.locator('.atr-trade-editor input').fill('1.088');
@@ -363,7 +365,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
     for (const width of [320, 375, 390, 430]) {
       await oldPage.setViewportSize({ width, height: 844 });
       assert.equal(await oldPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-      assert.equal(await oldPage.locator('.atr-trade-editor input').evaluate((node) => getComputedStyle(node).fontSize), '16px');
+      assert.equal(await oldPage.locator('.atr-trade-editor input').evaluate((node) => getComputedStyle(node).fontSize), '18px');
       const inputBounds = await oldPage.locator('.atr-trade-editor input').boundingBox();
       assert.ok(inputBounds.width >= 160 && inputBounds.height >= 44);
       const bounds = await oldPage.getByRole('button', { name: '确认并锁定', exact: true }).boundingBox();
@@ -382,10 +384,10 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
 });
 
 // 正式发布升级回归：服务器仅在内存中切换旧版与正式版，源码与用户数据不变。
-test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存储保留', { timeout: 120000 }, async () => {
+test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与其他存储保留', { timeout: 120000 }, async () => {
   const releaseWorker = await fs.readFile(path.join(root, 'sw.js'), 'utf8');
-  assert.match(releaseWorker, /const APP_VERSION = 'v1\.2\.0';/);
-  const predecessors = { v111: 'v1.1.1', dev2: 'v1.2.0-dev.2' };
+  assert.match(releaseWorker, /const APP_VERSION = 'v1\.3\.0';/);
+  const predecessors = { v111: 'v1.1.1', dev2: 'v1.2.0-dev.2', v120: 'v1.2.0' };
   const published = new Set();
   const server = http.createServer(async (request, response) => {
     try {
@@ -399,13 +401,15 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存
       let body = await fs.readFile(file);
       if (!published.has(prefix)) {
         if (file === path.join(root, 'sw.js')) {
-          let old = releaseWorker.replace("'v1.2.0'", "'" + predecessors[prefix] + "'");
+          let old = releaseWorker.replace("'v1.3.0'", "'" + predecessors[prefix] + "'");
           if (prefix === 'v111') old = old.replace(/^.*'\.\/tools\/atr-calculator\/.*\n/gm, '');
           body = Buffer.from(old);
         } else if (prefix === 'v111' && file === path.join(root, 'index.html')) {
           body = Buffer.from(body.toString()
             .replace(/\s*<a class="tool-card" href="\.\/tools\/atr-calculator\/index\.html">[\s\S]*?<\/a>/, '')
             .replace('<span>3 个</span>', '<span>2 个</span>'));
+        } else if (file === path.join(root, 'assets', 'styles.css')) {
+          body = Buffer.from('/* predecessor-cache: ' + prefix + ' */\n' + body.toString());
         }
       }
       const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
@@ -436,7 +440,7 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存
       old.completed[0] = true;
       let plans = [old];
       let version = 1;
-      if (prefix === 'dev2') {
+      if (prefix === 'dev2' || prefix === 'v120') {
         let confirmed = core.recordTrade(core.createPlan(draft, 'confirmed-kept'),
           0, '1.088', 'confirm', '2026-10-13T04:00:00.000Z');
         confirmed = core.recordTrade(confirmed, 0, '1.087', 'correct', '2026-10-13T05:00:00.000Z');
@@ -456,6 +460,8 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存
       await page.waitForFunction((version) => document.querySelector('[data-app-version]')?.textContent.includes(version),
         predecessor);
       assert.equal(await page.locator('#pwa-update:not([hidden])').count(), 0);
+      const stylesheetUrl = scope + 'assets/styles.css';
+      assert.match(await page.evaluate(async (url) => (await caches.match(url)).text(), stylesheetUrl), /predecessor-cache/);
       await page.evaluate(async () => {
         const unrelated = await caches.open('unrelated-application');
         await unrelated.put('/unrelated-marker', new Response('preserve'));
@@ -472,14 +478,16 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存
         page.waitForNavigation(),
         page.getByRole('button', { name: '立即更新', exact: true }).click(),
       ]);
-      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.2.0');
+      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
       assert.equal(navigations, 1);
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key), raw);
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), ratesKey), rates);
       assert.equal(await page.evaluate(() => localStorage.getItem('other-app')), 'keep');
       const cacheKeys = await page.evaluate(() => caches.keys());
       assert.equal(cacheKeys.filter((name) => name.startsWith('monster-slayer-kit:')).length, 1);
-      assert.ok(cacheKeys.some((name) => name.endsWith(':v1.2.0')));
+      assert.ok(cacheKeys.some((name) => name.endsWith(':v1.3.0')));
+      assert.equal(await page.evaluate(async (url) => (await caches.match(url)).text(), stylesheetUrl),
+        await fs.readFile(path.join(root, 'assets', 'styles.css'), 'utf8'));
       assert.ok(cacheKeys.includes('unrelated-application'));
       const responseText = await page.evaluate(async () => (await caches.match('/unrelated-marker')).text());
       assert.equal(responseText, 'preserve');
@@ -496,6 +504,13 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 → v1.2.0，旧计划与其他存
       }
       await page.goto(scope);
       assert.equal(await page.locator('.tool-card').count(), 3);
+      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
+      for (const tool of ['change-calculator', 'currency-converter']) {
+        await page.goto(scope + 'tools/' + tool + '/index.html');
+        await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
+      }
+      assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key), raw);
+      assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), ratesKey), rates);
       assert.deepEqual(errors, []);
       await context.close();
     }

@@ -14,12 +14,39 @@
     setItem: (key, value) => window.localStorage.setItem(key, value),
   });
   let state = store.read();
-  let selected = state.plans.find((plan) => plan.status === 'active')?.id || null;
+  let selected = state.plans.find((plan) => plan.status === 'active')?.id || state.plans[0]?.id || null;
+  let draftOpen = state.plans.length === 0;
+
+  // Only toggle visibility: existing form nodes, draft values and listeners stay intact.
+  function setDraftOpen(open, moveFocus = false) {
+    draftOpen = open;
+    $('new-plan').hidden = !open;
+    $('toggle-draft').setAttribute('aria-expanded', String(open));
+    $('toggle-draft').textContent = open ? '收起新建' : '＋ 新建计划';
+    if (moveFocus) {
+      if (open) {
+        $('new-plan').scrollIntoView({ block: 'start' });
+        fields.name.focus({ preventScroll: true });
+      } else {
+        $('toggle-draft').focus();
+      }
+    }
+  }
+  $('toggle-draft').addEventListener('click', () => setDraftOpen(!draftOpen, true));
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function changeLabel(value) {
+    const change = Number(value);
+    return (change > 0 ? '累计涨幅 +' : change === 0 ? '累计涨跌幅 ' : '累计跌幅 ') + value + '%';
+  }
+  function changeNode(value) {
+    const node = element('span', 'atr-drop', changeLabel(value));
+    node.dataset.tone = Number(value) > 0 ? 'up' : Number(value) < 0 ? 'down' : 'flat';
     return node;
   }
   function button(text, callback, className = '') {
@@ -61,7 +88,7 @@
       });
       remove.setAttribute('aria-label', '删除第 ' + (index + 1) + ' 档');
       remove.disabled = draft.length === 1;
-      head.append(element('h3', '', '第 ' + (index + 1) + ' 档'), remove);
+      head.append(element('h3', '', '第' + (index + 1) + '档'), remove);
       const inputs = element('div', 'atr-fields');
       [['multiplier', 'ATR倍数'], ['position', '计划仓位 %']].forEach(([key, text]) => {
         const label = element('label', 'atr-field', text);
@@ -85,7 +112,7 @@
       price.setAttribute('aria-label', '第 ' + (index + 1) + ' 档补仓价');
       const drop = element('span', 'atr-drop', '累计跌幅 —');
       drop.dataset.previewDrop = index;
-      result.append(price, drop);
+      result.append(element('span', 'atr-hint', '计划价格'), price, drop);
       card.append(head, inputs, result);
       $('draft-levels').append(card);
     });
@@ -100,15 +127,19 @@
     catch (cause) { error = cause.message; }
     document.querySelectorAll('[data-preview-price]').forEach((node, index) => {
       node.textContent = result?.levels[index].priceDisplay ?? '—';
+      node.dataset.empty = String(!result);
     });
     document.querySelectorAll('[data-preview-drop]').forEach((node, index) => {
-      node.textContent = '累计跌幅 ' + (result ? result.levels[index].dropPercent + '%' : '—');
+      const change = result?.levels[index].dropPercent;
+      node.textContent = result ? changeLabel(change) : '累计跌幅 —';
+      node.dataset.tone = change === undefined ? '' : Number(change) > 0 ? 'up' : Number(change) < 0 ? 'down' : 'flat';
     });
     $('preview-summary').textContent = result
       ? (fields.name.value.trim() || '未命名') + ' · 开仓价 ' + result.priceDisplay +
         ' · ATR' + (result.period ?? '') + ' ' + result.atrDisplay + ' · ATR占开仓价 ' + result.atrPercent + '%'
       : '填写真实价格与 ATR，自动计算。';
-    $('position-total').textContent = result ? '计划总仓位：' + result.totalPosition + '%' : '计划总仓位：—';
+    $('position-total').replaceChildren(element('span', '', '计划总仓位：'),
+      element('strong', '', result ? result.totalPosition + '%' : '—'));
     $('position-warning').hidden = !result?.overThreshold;
     $('position-warning').textContent = result?.overThreshold
       ? '计划总仓位 ' + result.totalPosition + '%，超过默认 40% 提醒线；请确认仓位安排。' : '';
@@ -143,6 +174,29 @@
   function renderNextInfo(card, plan) {
     const dynamic = plan.dynamic;
     const box = element('div', 'atr-next-info');
+    // Ended plans only describe saved history; active-plan wording stays unchanged.
+    if (plan.status === 'ended') {
+      if (dynamic.missingActual) {
+        box.append(element('p', 'atr-meta', '历史成交记录的实际价格未记录，历史参考价暂不可计算。'));
+      } else if (dynamic.legacyGap) {
+        box.append(element('p', 'atr-meta', '历史计划存在跳档记录，保留原有执行状态；历史参考距离暂不显示。'));
+      } else if (!dynamic.next) {
+        box.append(element('p', 'atr-meta', '全部档位已执行，记录仅供历史查阅。'));
+      } else if (dynamic.next.targetPrice === null) {
+        box.append(element('p', 'atr-meta', '未执行档位的历史参考价不大于 0，保留原始记录。'));
+      } else {
+        const next = dynamic.next;
+        box.append(element('p', 'atr-hint', '历史计算基准：' + core.formatPrice(next.basePrice)));
+        box.append(element('p', 'atr-meta', '首个未执行档位历史参考价：' + next.targetDisplay +
+          ' · 历史参考距离：' + next.distancePercent + '%'));
+        box.append(element('p', 'atr-hint', '基于已保存参数和成交记录计算，仅供历史查看。'));
+      }
+      if (dynamic.invalidTargets && dynamic.next?.targetPrice !== null) {
+        box.append(element('p', 'atr-meta', '部分未执行档位的历史参考价不大于 0，保留原始记录。'));
+      }
+      card.append(box);
+      return;
+    }
     if (dynamic.missingActual) {
       box.append(element('p', 'atr-meta', plan.status === 'active'
         ? '旧补仓记录的实际价格未记录，请先补录；暂不计算下一档距离。'
@@ -188,7 +242,12 @@
     const trade = plan.executions[index];
     if (mode === 'correct' && !window.confirm('当前锁定成交价：' + trade.actualPrice +
       '。纠正可能影响后续尚未执行档位；其他已确认成交价保持锁定。是否进入纠正模式？')) return;
-    $('current-plan').querySelectorAll('.atr-trade-editor').forEach((node) => node.remove());
+    $('current-plan').querySelectorAll('.atr-trade-editor').forEach((node) => {
+      node.closest('.atr-execution-body').querySelector('.atr-execution-action button').hidden = false;
+      node.remove();
+    });
+    const trigger = body.querySelector('.atr-execution-action button');
+    trigger.hidden = true;
     const editor = element('form', 'atr-trade-editor');
     editor.noValidate = true;
     const label = element('label', 'atr-field', mode === 'correct' ? '纠正实际成交价格' : '实际成交价格');
@@ -219,7 +278,8 @@
     const actions = element('div', 'atr-actions');
     const cancel = button('取消', () => {
       editor.remove();
-      body.querySelector('button')?.focus();
+      trigger.hidden = false;
+      trigger.focus();
     });
     const save = element('button', 'atr-button atr-primary',
       mode === 'correct' ? '保存纠正并锁定' : mode === 'backfill' ? '保存补录并锁定' : '确认并锁定');
@@ -268,8 +328,8 @@
     card.append(element('p', 'atr-hint', '创建时间：' + new Date(plan.createdAt).toLocaleString('zh-CN')));
     const stats = core.summary(plan);
     const metrics = element('div', 'atr-metrics');
-    [['计划总仓位', stats.total + '%'], ['已执行补仓档数', stats.count + '/' + data.levels.length],
-      ['已执行计划仓位', stats.executed + '%'], ['剩余计划仓位', stats.remaining + '%']].forEach(([label, value]) => {
+    [['计划总仓位', stats.total + '%'], ['补仓进度', stats.count + '/' + data.levels.length],
+      ['已执行仓位', stats.executed + '%'], [plan.status === 'ended' ? '未执行仓位' : '剩余仓位', stats.remaining + '%']].forEach(([label, value]) => {
       const metric = element('p', '', label);
       metric.append(element('strong', '', value));
       metrics.append(metric);
@@ -283,51 +343,61 @@
       const reference = plan.dynamic.levels[index];
       const row = element('div', 'atr-execution' + (done ? ' is-complete' : ''));
       row.dataset.executionLevel = index;
-      const mark = element('span', 'atr-execution-mark', done ? '✓' : String(index + 1));
-      mark.setAttribute('aria-hidden', 'true');
-      const body = element('div');
+      const body = element('div', 'atr-execution-body');
+      const ready = !plan.completed.slice(0, index).some((completed) => !completed) && !plan.dynamic.missingActual;
       const head = element('div', 'atr-execution-head');
+      const status = done ? trade.actualPrice === null
+        ? plan.status === 'ended' ? '已补仓 · 价格未记录' : '已补仓 · 待补录' : '✓ 已补仓'
+        : plan.status === 'ended' ? '未执行' : ready ? '待补仓' : plan.dynamic.missingActual ? '等待补录' : '等待前档';
       head.append(element('span', '', '第 ' + (index + 1) + ' 档 · ' + level.multiplier + ' ATR'),
-        element('strong', '', done ? '✓ 已补仓' : '待补仓'));
-      body.append(head);
-      if (done) {
-        body.append(element('p', 'atr-hint', '原计划价格：' + level.priceDisplay + ' · 累计跌幅 ' + level.dropPercent + '%'));
-        if (trade.referencePrice !== level.price && reference.priceDisplay) {
-          body.append(element('p', 'atr-hint', '确认时计划价格：' + reference.priceDisplay));
-        }
-        if (trade.actualPrice === null) {
-          body.append(element('p', 'atr-meta', '实际价格未记录'));
-        } else {
-          const result = element('div', 'atr-result');
-          result.append(element('span', 'atr-hint', '实际成交价格'),
-            element('span', 'atr-price', reference.actual.priceDisplay),
-            element('span', 'atr-drop', '累计跌幅 ' + reference.actual.dropPercent + '%'));
-          body.append(result);
-          body.append(element('p', 'atr-hint',
-            (trade.legacy ? '补录确认时间：' : '确认时间：') + new Date(trade.confirmedAt).toLocaleString('zh-CN')));
-          if (trade.actualPrice.split('.')[1]?.length > 4) {
-            body.append(element('p', 'atr-hint', '实际记录：' + trade.actualPrice));
-          }
-        }
+        element('strong', '', status));
+      const main = element('div', 'atr-execution-main');
+      const priceBox = element('div', 'atr-execution-price');
+      priceBox.append(element('span', 'atr-price-label', done ? '实际成交价格' : plan.status === 'ended' ? '历史参考价' : '当前参考价'));
+      const result = element('div', 'atr-result');
+      if (done && trade.actualPrice === null) {
+        result.append(element('span', 'atr-missing-price', '实际价格未记录'));
       } else {
-        body.append(element('p', 'atr-hint', '计划补仓价'));
-        const result = element('div', 'atr-result');
-        result.append(element('span', 'atr-price', reference.priceDisplay ?? '—'));
-        if (reference.dropPercent !== null) {
-          result.append(element('span', 'atr-drop', '累计跌幅 ' + reference.dropPercent + '%'));
-        }
-        body.append(result);
-        if (reference.price !== level.price) {
-          body.append(element('p', 'atr-hint', '原计划价格：' + level.priceDisplay));
-        }
+        const shown = done ? reference.actual : reference;
+        const price = element('span', 'atr-price', shown.priceDisplay ?? '—');
+        price.dataset.empty = String(shown.priceDisplay === null);
+        result.append(price);
+        if (shown.dropPercent !== null) result.append(changeNode(shown.dropPercent));
       }
-      body.append(element('p', 'atr-hint', '计划仓位 ' + level.position + '%'));
+      priceBox.append(result);
+      main.append(priceBox);
+      const meta = element('div', 'atr-execution-meta');
+      meta.append(element('span', '', '原计划价格：' + level.priceDisplay + '（' + level.dropPercent + '%）'),
+        element('span', '', '计划仓位 ' + level.position + '%'));
+      body.append(head, main, meta);
+      if (done) {
+        const recordMeta = element('div', 'atr-record-meta');
+        recordMeta.append(element('span', '', '确认时参考价：' + (reference.priceDisplay ?? '—')),
+          element('span', '', (trade.legacy ? '补录确认时间：' : '确认时间：') +
+            (trade.confirmedAt ? new Date(trade.confirmedAt).toLocaleString('zh-CN') : '未记录')));
+        body.append(recordMeta);
+        if (trade.actualPrice?.split('.')[1]?.length > 4) {
+          body.append(element('p', 'atr-hint', '实际记录：' + trade.actualPrice));
+        }
+      } else if (reference.price === null) {
+        body.append(element('p', 'atr-hint atr-invalid-target', plan.status === 'ended'
+          ? plan.dynamic.missingActual ? '历史参考价无法计算：真实成交价未记录。' : '历史参考价无效，原计划价格和成交记录保留。'
+          : plan.dynamic.missingActual
+          ? '请先补录真实成交价，当前参考价暂不可计算。' : '目标价格无效，请重新评估；仍可记录真实成交价。'));
+      }
       if (plan.status === 'active') {
         const mode = !done ? 'confirm' : trade.actualPrice === null ? 'backfill' : 'correct';
         const action = button(mode === 'confirm' ? '确认补仓' : mode === 'backfill' ? '补录实际价格' : '纠正记录',
-          () => openTradeEditor(plan, index, mode, body), mode === 'correct' ? 'atr-subtle' : '');
-        action.disabled = state.readOnly;
-        body.append(action);
+          () => openTradeEditor(plan, index, mode, body),
+          mode === 'confirm' && ready ? 'atr-primary' : mode === 'correct' ? 'atr-subtle' : '');
+        action.disabled = state.readOnly || (mode === 'confirm' && !ready);
+        if (mode === 'confirm' && !ready) {
+          action.title = plan.dynamic.missingActual ? '请先补录旧记录的实际成交价格。' : '请先确认上一档补仓记录。';
+        }
+        const actionBox = element('div', 'atr-execution-action');
+        actionBox.append(action);
+        main.classList.add('has-action');
+        main.append(actionBox);
       }
       if (done && trade.corrections.length) {
         const history = element('details', 'atr-corrections');
@@ -338,7 +408,7 @@
         });
         body.append(history);
       }
-      row.append(mark, body);
+      row.append(body);
       list.append(row);
     });
     card.append(list, element('p', 'atr-hint', '首次开仓按已完成计算；仓位为计划比例。'));
@@ -366,8 +436,15 @@
 
   function renderPlans() {
     if (!state.plans.some((plan) => plan.id === selected)) {
-      selected = state.plans.find((plan) => plan.status === 'active')?.id || null;
+      selected = state.plans.find((plan) => plan.status === 'active')?.id || state.plans[0]?.id || null;
     }
+    const hasPlans = state.plans.length > 0;
+    document.querySelector('.atr-shell').classList.toggle('has-plans', hasPlans);
+    $('plan-toolbar').hidden = !hasPlans;
+    $('current-section').hidden = !hasPlans;
+    $('history-section').hidden = !hasPlans;
+    if (!hasPlans) draftOpen = true;
+    setDraftOpen(draftOpen);
     $('storage-message').textContent = state.error;
     $('storage-message').hidden = !state.error;
     $('plan-count').textContent = state.plans.length + ' 份';
@@ -414,6 +491,7 @@
     try {
       const plan = core.createPlan(inputData(), newId());
       if (persist([plan, ...state.plans], plan.id, '补仓明细单已生成并保存。')) {
+        setDraftOpen(false);
         $('current-section').scrollIntoView({ block: 'start' });
       }
     } catch (error) { notify(error.message, true); }

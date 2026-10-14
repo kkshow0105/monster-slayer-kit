@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f1efe8" />
+    <meta name="theme-color" content="#f5f6f8" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="要你命3000" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -18,7 +18,7 @@
   <body>
     <div class="site-shell calculator-shell atr-shell">
       <header class="topbar">
-        <a class="back-link" href="../../index.html">
+        <a class="back-link" href="../../index.html" aria-label="返回工具首页">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
           <span>全部工具</span>
         </a>
@@ -28,22 +28,37 @@
       </header>
       <main class="calculator-main">
         <section class="tool-heading" aria-labelledby="calculator-title">
-          <p class="eyebrow">ATR POSITION PLAN</p>
           <h1 id="calculator-title">ATR补仓计算器</h1>
-          <p>算好价格间隔，留下一份补仓计划。</p>
+          <p>按ATR规划补仓间隔与仓位</p>
         </section>
+        <div id="plan-toolbar" class="atr-toolbar" hidden>
+          <button id="toggle-draft" class="atr-button atr-primary" type="button" aria-controls="new-plan" aria-expanded="false">＋ 新建计划</button>
+          <a class="atr-button" href="#history-section">切换计划</a>
+        </div>
         <p id="storage-message" class="atr-notice" role="alert" hidden></p>
-        <section class="calculator-card" aria-labelledby="form-title">
-          <div class="section-heading"><h2 id="form-title">补仓计算器</h2><button id="reset-draft" class="atr-button atr-subtle" type="button">清空重置</button></div>
+        <p id="action-message" class="atr-action-message" role="status" aria-live="polite"></p>
+        <section id="current-section" class="atr-section" aria-labelledby="current-title">
+          <div class="section-heading"><h2 id="current-title">当前补仓明细单</h2><span>独立保存</span></div>
+          <div id="current-plan"></div>
+        </section>
+        <section id="history-section" class="atr-section" aria-labelledby="history-title">
+          <div class="section-heading"><h2 id="history-title">我的补仓计划</h2><span id="plan-count">0 份</span></div>
+          <h3 class="atr-list-heading">进行中</h3>
+          <div id="active-plans" class="atr-stack"></div>
+          <h3 class="atr-list-heading">已结束</h3>
+          <div id="ended-plans" class="atr-stack"></div>
+        </section>
+        <section id="new-plan" class="calculator-card atr-new-plan" aria-labelledby="form-title">
+          <div class="section-heading"><h2 id="form-title">新建计划</h2><button id="reset-draft" class="atr-button atr-subtle" type="button">清空重置</button></div>
           <form id="atr-form" novalidate>
             <div class="atr-fields">
-              <label class="atr-field">股票/ETF名称
+              <label class="atr-field">股票 / ETF 名称
                 <input id="asset-name" type="text" maxlength="80" autocomplete="off" placeholder="例如：科创50ETF" required />
               </label>
-              <label class="atr-field">代码 <small>可选</small>
+              <label class="atr-field">代码 <small>选填</small>
                 <input id="asset-code" type="text" maxlength="40" autocomplete="off" placeholder="例如：588000" />
               </label>
-              <label class="atr-field atr-main-field">首次开仓价格
+              <label class="atr-field atr-main-field">首次开仓价
                 <input id="opening-price" type="text" inputmode="decimal" autocomplete="off" placeholder="0.583" required aria-describedby="preview-status" />
               </label>
               <label class="atr-field atr-main-field">ATR值 <small>价格单位</small>
@@ -52,7 +67,7 @@
               <label class="atr-field">ATR周期 <small>日 · 可选</small>
                 <input id="atr-period" type="text" inputmode="numeric" autocomplete="off" value="14" />
               </label>
-              <label class="atr-field">首次开仓仓位 <small>% · 已执行</small>
+              <label class="atr-field">首次仓位 <small>% · 已执行</small>
                 <input id="opening-position" type="text" inputmode="decimal" autocomplete="off" value="10" aria-describedby="preview-status" />
               </label>
             </div>
@@ -62,25 +77,13 @@
             <button id="add-level" class="atr-button" type="button">＋ 增加档位</button>
             <div class="atr-preview-footer">
               <p id="position-total" class="atr-meta"></p>
-              <p id="position-warning" class="atr-notice" hidden></p>
+              <p id="position-warning" class="atr-notice atr-position-warning" hidden></p>
               <p id="preview-status" class="status-message" aria-live="polite"></p>
               <button id="generate-plan" class="atr-button atr-primary" type="submit">生成补仓明细单</button>
             </div>
           </form>
           <p class="atr-hint">补仓价仅供计划参考，达到价格不代表必须买入。</p>
           <p class="atr-hint">价格展示至 4 位小数，实际成交须符合最小报价单位。</p>
-        </section>
-        <p id="action-message" class="atr-action-message" role="status" aria-live="polite"></p>
-        <section id="current-section" class="atr-section" aria-labelledby="current-title">
-          <div class="section-heading"><h2 id="current-title">当前补仓明细单</h2><span>独立保存</span></div>
-          <div id="current-plan"></div>
-        </section>
-        <section class="atr-section" aria-labelledby="history-title">
-          <div class="section-heading"><h2 id="history-title">我的历史补仓计划</h2><span id="plan-count">0 份</span></div>
-          <h3 class="atr-list-heading">进行中</h3>
-          <div id="active-plans" class="atr-stack"></div>
-          <h3 class="atr-list-heading">已结束</h3>
-          <div id="ended-plans" class="atr-stack"></div>
         </section>
         <p class="atr-hint atr-local-note">计划仅保存在当前浏览器或 PWA 中；清理网站数据、卸载或更换设备可能丢失。仓位为计划比例，并非实时持仓。</p>
         <p class="version-note" data-app-version>要你命3000</p>
