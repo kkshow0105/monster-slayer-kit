@@ -1,0 +1,8 @@
+# Always validate and publish the generated, allowlisted site directory.
+[build]
+  base = "."
+  command = "node scripts/build-site.js"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

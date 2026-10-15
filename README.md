@@ -2,7 +2,7 @@
 
 原生 HTML、CSS、JavaScript 个人工具箱，无需后端、数据库或构建步骤。
 
-美股风向当前本地开发版为 **v1.4.0-dev.10**：四项股票指数仍用完整交易日收盘缓存，COMEX黄金/布伦特原油改为东方财富连续期货盘中延迟行情。当前仅供本机个人验收，未部署；下文dev.7/dev.8研究记录保留，商品的现行方案以dev.9及dev.10说明为准。
+美股风向当前版本为 **v1.4.0-dev.11**。收盘行情的白名单公开JSON纳入Git并随Netlify构建发布，解决新设备首次访问无数据；原始行情、密钥、日志继续保留在Windows私有目录。黄金/Brent仍独立按盘中延迟行情刷新。下文dev.1—dev.10为历史开发记录，现行共享与发布流程以文末dev.11说明为准。
 
 ## 使用与部署
 
@@ -396,3 +396,50 @@ node scripts/serve-local.js
 修正久开页面的时间提示：本地显示计时器在原20分钟阈值经过后更新“报价较旧”，只更新标签，绝不获取行情；退出时一并清理。正常/缓存与原始报价时间标识保持。完整92项自动化Mock测试通过，含断网保留、离线恢复仍标缓存、旧源报价/页面久开、50次连续点击/29999毫秒边界、退出取消、历史切换、洛杉矶浏览器时区下的北京时间跨午夜/跨年、商品刷新不触发任何FMP/FRED或收盘JSON重读，以及dev.9到dev.10的PWA升级和计算器回归。本轮所有真实行情请求0次。测试日志在忽略目录local-data/us-market/dev10/。
 
 正式发布继续阻断：东方财富及上游自动访问、缓存、再展示授权尚未明确；iPhone Safari/主屏幕PWA和实际托管域名仍未真机验证。版本仅沿用原PWA机制递增，未commit、push、tag或部署。
+
+
+### 跨设备共享行情与构建保护（v1.4.0-dev.11）
+
+线上站点 https://ynm3000.netlify.app/ 。原问题是Git只包含代码，local-data原始目录被忽略，线上manifest/快照/SOX/NBI实际404，新设备无浏览器缓存可回退。本版不依赖清缓存，不把FMP Key放入前端，也不在网页或构建时采集FMP。
+
+数据分三层：
+
+- Windows原始输入仍为local-data/us-market/，完整历史、请求账本、私有配置不入Git，不自动删除或迁移。
+- Git跟踪public-data/us-market/的白名单JSON：manifest.json、status.json、sox.json、nbi.json、snapshots/2026-10-14.json。当前只有2026-10-14一份真实FMP快照；22条大行业、255条细分行业（NASDAQ127/NYSE128）、标普/纳指；SOX和NBI保留真实日线、前收盘口径与来源版权。旧原始道琼斯历史仍在私有目录，本次公开副本仅导出页面所需两项FMP指数。没有新增虚构日期。
+- Netlify构建时把这些公开文件复制到dist/local-data/us-market/，保持现有网页URL，无需前端密钥、跨域代理、新站点、数据库或新技术栈。离线副本仍使用原localStorage键；黄金/Brent机制不改。
+
+公开数据生成、校验与暂存（默认0次网络请求，不自动提交或推送）：
+
+~~~powershell
+node scripts/public-market-data.js --stage
+# 单独检查，不修改任何数据
+node scripts/public-market-data.js --check
+~~~
+
+需要采集新交易日时，只在Windows本地手动执行：
+
+~~~powershell
+# 纽约18:00后选择最近完整交易日；也可加 --date=YYYY-MM-DD
+node scripts/public-market-data.js --collect --stage
+# 审核本次数据差异后，再按正常Git流程提交推送main
+# 如已完成FMP/SOX/NBI采集，直接用上面的无 --collect 命令同步
+~~~
+
+--collect依次复用现有FMP、SOX及NBI采集器，已有有效交易日直接跳过，不重复请求FMP；正常新日最多6次FMP+各1次SOX/NBI，网络重试及各源预算沿用现有限制。若补充指数未更新，不发布不完整的新日，重新同步时FMP已有快照仍跳过。默认同步只读本地，不自动开启定时任务；--stage只暂存公开清单内明确列出的文件，绝不git add .。
+
+导出逐字段白名单，删除日志、API Key/Token及其他字段；不复制整个原始目录。公开历史取已有公开/原始日期的并集，原始目录暂时缺少旧文件也不删除公开历史；已有公开历史价格发生变化则停止，要求明确复核，不自动覆盖。两补充指数保留旧记录，只追加真实新日期。全部内容预先校验后才写入，清单最后更新；重复同步不更改已有内容。
+
+Netlify从仓库根目录netlify.toml读取：构建命令node scripts/build-site.js，发布目录dist。构建只读Git中的公开JSON，不调用同步/采集，不清空或覆盖已跟踪历史。发布包只包含网页静态文件和5类允许的行情文件，不含scripts、tests、.git、.env、原始日志或私有目录的其他内容。dist、临时构建目录继续Git忽略。
+
+构建校验强制要求：非空清单；引用快照全部存在；真实且非未来交易日；两交易所各11类及非空无重复细分行业；FMP两指数完整相邻收盘价；SOX/NBI对应每个已发布日期及相邻有效收盘价完整；白名单字段；清单SHA-256与快照/两补充指数一致。损坏、删改或缺少必要数据时构建返回非零，Netlify不发布该构建。不要绕过构建、直接上传源目录。Netlify的Git连续部署会运行构建，手动拖拽不执行构建；如确需手动发布，必须先构建并只上传dist。依据：[Netlify文件配置](https://docs.netlify.com/build/configure-builds/file-based-configuration/)、[部署方式说明](https://docs.netlify.com/deploy/create-deploys/)。
+
+运行全部测试：
+
+~~~powershell
+node --test tests/atr-core.test.js tests/atr-browser.test.js tests/ui-browser.test.js tests/us-market-core.test.js tests/commodity-core.test.js tests/us-market-browser.test.js tests/public-market-data.test.js
+node scripts/build-site.js
+~~~
+
+全部普通功能测试Mock；另以现有真实文件进行localhost发布包验收，不调用行情源。包含无缓存首访、四指数、两交易所、历史/离线、dev.10→dev.11更新，以及仅修改其他工具再构建仍保留行情、缺数拒绝发布。缺失文件、断网、损坏JSON均有明确提示；有效离线副本继续显示，不清空用户数据。当前仅一份真实FMP日期，跨多日期切换由Mock测试，不补造真实历史。
+
+本次公开白名单数据与现有Netlify自动部署由用户明确授权，替代历史开发记录中的“仅本机/不发布”阶段安排；来源及必要版权说明保留。iPhone Safari/主屏幕PWA最终仍需真机验证。

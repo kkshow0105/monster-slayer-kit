@@ -30,7 +30,13 @@ async function setup(run, basePath='', contextOptions={}) {
     }
     original(req,res);
   });
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  // Windows can allocate an ephemeral port blocked by Chromium (observed: 5061).
+  const blockedPorts=new Set([1719,1720,1723,2049,3659,4045,5060,5061,6000,6566,6665,6666,6667,6668,6669,6679,6697,10080]);
+  for(let attempt=0;;attempt++){
+    await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+    const port=server.address().port;if(port>=1024&&!blockedPorts.has(port))break;
+    await new Promise(resolve=>server.close(resolve));if(attempt>=9)throw Error('未能分配浏览器可用的测试端口');
+  }
   let browser;
   try{
     browser=await chromium.launch({channel:'msedge',headless:true});
@@ -328,6 +334,7 @@ test('延迟标签和实际日期可读，六指标手机与电脑紧凑布局',
 
 
 test('六指标顺序及单位、独立连续期货口径，旧现货/道琼斯历史保留', {timeout:120000},async()=>setup(async({page,origin,dir})=>{
+ const legacy=fixture.daily('BRENT');await page.addInitScript(data=>localStorage.setItem('monster-slayer-kit:us-market:snapshots:v1',JSON.stringify({version:1,snapshots:{},extras:{BRENT:data}})),legacy);
  await atomicJson(path.join(dir,'nbi.json'),core.parseDailyCsv('observation_date,NASDAQNBI\n2026-10-12,100\n2026-10-14,105\n','2026-10-15T04:00:00Z','NBI'));
  await ready(page,origin);
  assert.deepEqual(await page.locator('.index-tile').evaluateAll(nodes=>nodes.map(n=>n.dataset.symbol)),['^GSPC','^IXIC','SOX','NBI','GC00Y','B00Y']);
@@ -470,4 +477,39 @@ test('最终验收：北京时间跨午夜/跨年，报价原日期与获取日�
   for(const symbol of ['GC00Y','B00Y']){const card=page.locator('.commodity-tile[data-symbol="'+symbol+'"]');assert.equal(await card.locator('time').textContent(),display);assert.equal(await card.locator('time').getAttribute('datetime'),new Date(quote).toISOString());assert.ok((await card.getAttribute('title')).includes('实际报价时间：'+full+'（北京时间）'));}
   const data=await page.evaluate(()=>JSON.parse(localStorage.getItem(USCommodity.CACHE_KEY)).snapshot);assert.equal(data.quotes[0].tradingDate,null);assert.notEqual(data.fetchedAt,data.quotes[0].quoteAt);
  },'',{timezoneId:'America/Los_Angeles'});
+});
+
+
+test('共享行情首次加载错误：404、网络失败、损坏JSON、空清单分别明确提示，不伪造数据', {timeout:120000},async()=>{
+ for(const mode of ['404','network','json','empty'])await setup(async({page,origin})=>{
+  await page.route('**/local-data/us-market/manifest.json',route=>mode==='network'?route.abort('failed'):route.fulfill({status:mode==='404'?404:200,contentType:'application/json',body:mode==='json'?'bad JSON':JSON.stringify({version:1,dates:[],latest:null})}));
+  await page.goto(origin+'/tools/us-market/');await page.waitForFunction(()=>document.querySelector('#data-status').textContent.startsWith('美股收盘行情不可用：'));
+  const text=await page.locator('#data-status').textContent();assert.match(text,/当前设备没有有效离线副本/);assert.match(text,mode==='404'?/文件缺失.*404/:mode==='network'?/网络不可用/:mode==='json'?/JSON损坏/:/历史清单为空/);
+  assert.equal(await page.locator('#trading-date').textContent(),'—');assert.equal(await page.locator('#market-board .market-row').count(),0);
+ });
+});
+test('共享行情损坏/缺失：保留离线副本并说明原因，空清单也不能抹掉缓存', {timeout:120000},async()=>{
+ for(const mode of ['404','json','empty'])await setup(async({page,origin})=>{
+  await ready(page,origin);
+  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('monster-slayer-kit:us-market:snapshots:v1')).snapshots['2026-10-14']);
+  await page.route('**/local-data/us-market/manifest.json',route=>route.fulfill({status:mode==='404'?404:200,contentType:'application/json',body:mode==='json'?'bad JSON':JSON.stringify({version:1,dates:[],latest:null})}));
+  await ready(page,origin);assert.match(await page.locator('#data-status').textContent(),/读取失败.*保存副本/);
+  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('monster-slayer-kit:us-market:snapshots:v1')).snapshots['2026-10-14']),before);assert.equal(await page.locator('#market-board .market-row').count(),11);
+ });
+});
+test('公开清单存在但快照损坏：明确错误，不将无数据冒充已保留行情', {timeout:120000},async()=>setup(async({page,origin})=>{
+ await page.route('**/local-data/us-market/snapshots/2026-10-14.json',route=>route.fulfill({status:200,contentType:'application/json',body:'not json'}));
+ await page.goto(origin+'/tools/us-market/');await page.waitForFunction(()=>document.querySelector('#data-status').textContent.startsWith('无法读取2026-10-14'));
+ assert.match(await page.locator('#data-status').textContent(),/JSON损坏.*没有有效离线副本/);assert.equal(await page.locator('#trading-date').textContent(),'—');
+ await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');assert.equal(await page.locator('#market-board .market-row').count(),11);
+}));
+
+
+test('单个补充指数文件异常：其他行情继续显示、明确原因，无副本时不冒称缓存', {timeout:120000},async()=>{
+ for(const symbol of ['SOX','NBI'])await setup(async({page,origin})=>{
+  await page.route('**/local-data/us-market/'+symbol.toLowerCase()+'.json',route=>route.fulfill({status:symbol==='SOX'?404:200,contentType:'application/json',body:'not json'}));
+  await ready(page,origin);assert.equal(await page.locator('#trading-date').textContent(),'2026-10-14');assert.equal(await page.locator('#market-board .market-row').count(),11);
+  const title=await page.locator('.index-tile[data-symbol="'+symbol+'"]').getAttribute('title');assert.match(title,/当前设备无有效副本/);assert.doesNotMatch(title,/使用已保存副本/);
+  assert.match(await page.locator('#data-status').textContent(),symbol==='SOX'?/SOX：行情文件缺失.*404/:/NBI：JSON损坏/);assert.equal(await page.locator('#data-status').getAttribute('data-warning'),'true');
+ });
 });

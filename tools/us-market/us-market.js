@@ -7,13 +7,16 @@
   const $ = id => document.getElementById(id);
   const state = { kind: 'sector', exchange: 'NASDAQ', sectorExchange: 'NASDAQ', industryExchange: 'both', relatedSector: '', snapshot: null, config: null, overrides: {}, mappingRaw: null,
     mappingLocked: false, cached: { version: 1, snapshots: {} }, dates: [], latest: null, status: null,
-    offline: false, manifestOffline: false, loadToken: 0, editBaseline: null, sox: null, soxOffline: false, extras: { NBI:null, BRENT:null }, extrasOffline: {} };
+    offline: false, manifestOffline: false, manifestProblem:'', snapshotProblem:'', loadToken: 0, editBaseline: null, sox: null, soxOffline: false, soxProblem:'', extraProblems:{}, extras: { NBI:null, BRENT:null }, extrasOffline: {} };
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
   function tone(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral'; }
   async function json(url) {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (!response.ok) throw new Error('本地数据读取失败');
-    return response.json();
+    let response;
+    try { response = await fetch(url, { cache: 'no-store' }); }
+    catch { throw new Error('网络不可用或连接失败'); }
+    if (!response.ok) throw new Error(response.status===404 ? '行情文件缺失（HTTP 404）' : '行情请求失败（HTTP '+response.status+'）');
+    try { return await response.json(); }
+    catch { throw new Error('JSON损坏或服务器返回了非JSON内容'); }
   }
   function mapping(kind, name) {
     const override = state.overrides[kind + '|' + name];
@@ -95,7 +98,7 @@
         + (record ? '；实际数据日期：'+record.date+(record.previousDate ? '；前期日期：'+record.previousDate : '') : '')
         + (updated ? '；获取时间：'+updated : '')
         + (record && record.change===null ? '；缺少前一有效交易期价格，不计算涨跌幅' : '')
-        + ((symbol==='SOX'&&state.soxOffline)||state.extrasOffline[symbol] ? '；使用已保存副本' : '');
+        + ((symbol==='SOX'&&state.soxOffline)||state.extrasOffline[symbol] ? '；'+(symbol==='SOX'?state.soxProblem:state.extraProblems[symbol])+(record?'；使用已保存副本':'；当前设备无有效副本') : '');
       const hasChange = record && typeof record.change==='number' && Number.isFinite(record.change);
       const change = el('strong','index-change '+(hasChange ? tone(record.change) : 'neutral'),hasChange ? core.percent(record.change) : record ? '—' : '暂无数据');
       const value = record ? record.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
@@ -239,14 +242,16 @@
     const failure = state.status?.lastAttempt?.success === false && !historical;
     const stale = !historical && (!expected || s.tradingDate < expected || failure);
     const warnings = [];
-    if (state.offline || state.manifestOffline) warnings.push('本地数据读取失败，使用浏览器已保存副本');
+    if (state.offline || state.manifestOffline) warnings.push('收盘行情读取失败'+((state.snapshotProblem||state.manifestProblem)?'（'+(state.snapshotProblem||state.manifestProblem)+'）':'')+'，使用浏览器已保存副本');
+    if(state.soxProblem)warnings.push('SOX：'+state.soxProblem);
+    if(state.extraProblems.NBI)warnings.push('NBI：'+state.extraProblems.NBI);
     if (historical) warnings.push('历史快照');
     else if (stale) warnings.push('数据过期');
     else warnings.push('已收盘 · 当前最新交易日');
     if (failure) warnings.push(`最近采集失败，保留有效行情${state.status.lastAttempt.message ? '：' + state.status.lastAttempt.message : ''}`);
     if (!expected) warnings.push('交易日历超出支持范围');
     $('data-status').textContent = warnings.join(' · ');
-    $('data-status').dataset.warning = String(stale || state.offline || state.manifestOffline);
+    $('data-status').dataset.warning = String(!!(stale || state.offline || state.manifestOffline || state.soxProblem || state.extraProblems.NBI));
     $('updated-at').textContent = '美股收盘数据更新：' + new Date(s.updatedAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) + '（北京时间）';
     const coverage = ['sector', 'industry'].map(kind => `${kind === 'sector' ? '大行业' : '细分行业'}：` + core.EXCHANGES.map(e => `${e} ${s.datasets[kind].filter(r => r.exchange === e).length}条`).join(' / '));
     let missing = 0;
@@ -268,14 +273,14 @@
     $('history-date').disabled = true;
     let snapshot, offline = false;
     try { snapshot = core.validateSnapshot(await json(new URL(`snapshots/${date}.json`, DATA)), { forDisplay:true }); if (snapshot.tradingDate !== date) throw new Error('日期不匹配'); }
-    catch { snapshot = state.cached.snapshots[date]; offline = true; }
+    catch (e) { snapshot = state.cached.snapshots[date]; offline = true; if(token===state.loadToken)state.snapshotProblem=e.message; }
     if (token !== state.loadToken) return;
     if (!snapshot) {
-      $('data-status').textContent = `无法读取${date}的有效快照；已保留当前行情。`;
+      $('data-status').textContent = `无法读取${date}的有效快照：${state.snapshotProblem}；${state.snapshot?'已保留当前行情':'当前设备没有有效离线副本'}。`;
       $('data-status').dataset.warning = 'true';
       $('history-date').value = state.snapshot?.tradingDate || '';
     } else {
-      state.snapshot = snapshot; state.offline = offline; cacheSnapshot(snapshot); render();
+      state.snapshot = snapshot; state.offline = offline; if(!offline)state.snapshotProblem=''; cacheSnapshot(snapshot); render();
     }
     $('history-date').disabled = false;
   }
@@ -329,22 +334,23 @@
       state.config = await json(new URL('./mappings.json', location.href));
       if (state.config.version !== 1) throw new Error('关联配置版本不兼容');
       readMappings(); readCache(); editorNames();
-      try { state.sox = core.validateSox(await json(new URL('sox.json', DATA))) || state.sox; }
-      catch { state.soxOffline = true; }
-      await Promise.all(Object.keys(core.DAILY_SERIES).map(async symbol=>{
-        try { state.extras[symbol] = core.validateDailySeries(await json(new URL(symbol.toLowerCase()+'.json',DATA)),symbol) || state.extras[symbol]; }
-        catch { state.extrasOffline[symbol] = true; }
+      try { const fresh=core.validateSox(await json(new URL('sox.json', DATA))); if(!fresh)throw new Error('日线为空或缺少有效记录'); state.sox=fresh; }
+      catch (e) { state.soxOffline = true; state.soxProblem=e.message; }
+      await Promise.all(['NBI'].map(async symbol=>{
+        try { const fresh=core.validateDailySeries(await json(new URL(symbol.toLowerCase()+'.json',DATA)),symbol); if(!fresh)throw new Error('日线为空或缺少有效记录'); state.extras[symbol]=fresh; }
+        catch (e) { state.extrasOffline[symbol] = true; state.extraProblems[symbol]=e.message; }
       }));
       let manifest;
       try {
         manifest = await json(new URL('manifest.json', DATA));
         if (manifest.version !== 1 || !Array.isArray(manifest.dates) || manifest.dates.some(date => !core.isTradingDay(date))
-          || (manifest.dates.length && manifest.latest !== [...manifest.dates].sort().at(-1))) throw new Error('历史清单无效');
+          || (manifest.dates.length && manifest.latest !== [...manifest.dates].sort().at(-1))) throw new Error('历史清单数据损坏或包含非交易日');
+        if(!manifest.dates.length)throw new Error('公开历史清单为空');
         state.dates = [...new Set(manifest.dates)].sort().reverse();
-      } catch { state.manifestOffline = true; state.dates = Object.keys(state.cached.snapshots).sort().reverse(); }
+      } catch (e) { state.manifestOffline = true; state.manifestProblem=e.message; state.dates = Object.keys(state.cached.snapshots).sort().reverse(); }
       state.latest = state.dates[0] || null;
       try { state.status = await json(new URL('status.json', DATA)); } catch { state.status = null; }
-      if (!state.dates.length) { render(); $('data-status').textContent = '尚未采集本地行情；没有使用模拟数据。'; return; }
+      if (!state.dates.length) { render(); $('data-status').textContent = '美股收盘行情不可用：'+state.manifestProblem+'；当前设备没有有效离线副本。'; $('data-status').dataset.warning='true'; return; }
       $('history-date').replaceChildren(...state.dates.map(date => { const option = el('option', '', date + (date === state.latest ? ' · 最新' : '')); option.value = date; return option; }));
       await selectDate(state.latest);
     } catch { $('data-status').textContent = '配置读取失败，请通过本地HTTP服务打开并检查工具文件是否完整。'; $('data-status').dataset.warning = 'true'; }

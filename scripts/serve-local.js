@@ -6,7 +6,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'application/javascript; charset=utf-8', '.css':'text/css; charset=utf-8',
   '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.png':'image/png', '.webmanifest':'application/manifest+json' };
-function createServer({ root = ROOT, dataDir = path.join(root, 'local-data/us-market'), basePath = '' } = {}) {
+function createServer({ root = ROOT, dataDir = path.join(root, 'public-data/us-market'), basePath = '' } = {}) {
   return http.createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');

@@ -3,3 +3,7 @@
 /.env
 /.env.*
 !.env.example
+
+# Disposable site output; public-data/ is intentionally tracked.
+/dist/
+/.site-build-*/

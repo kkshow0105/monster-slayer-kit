@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "dates": [
+    "2026-10-14"
+  ],
+  "latest": "2026-10-14",
+  "integrity": {
+    "nbi.json": "548bc55fa79af8dbea086833b63c5ae50f2dcedefa234e31367c26f774666ec2",
+    "snapshots/2026-10-14.json": "8f93b9cc860b12269112ef56d6670c8c6afb09ebc101307388e147ee300a3580",
+    "sox.json": "0b807609c33626e9cd0358032260754a6d976de8f03cae0bb18237a111c93b48"
+  }
+}
