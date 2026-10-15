@@ -1,0 +1,1115 @@
+{
+  "version": 1,
+  "note": "同类行业关联不代表持仓相同或收益同步。未核实代码不展示。云计算仅为软件相关ETF方向，不产生虚构美股分类。",
+  "relations": {
+    "direct": "直接行业对应",
+    "chain": "产业链关联",
+    "indirect": "间接关联"
+  },
+  "catalogue": [
+    {
+      "id": "star50",
+      "name": "科创50ETF华夏",
+      "code": "588000",
+      "fullName": "华夏上证科创板50成份ETF",
+      "source": "https://m.chinaamc.com/activity/588000/index.html",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "semi",
+      "name": "半导体ETF国联安",
+      "code": "512480",
+      "fullName": "国联安中证全指半导体产品与设备ETF",
+      "source": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2026-03-23/512480_20260323_419Q.pdf",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "chip",
+      "name": "芯片ETF国泰",
+      "code": "512760",
+      "fullName": "国泰CES半导体芯片行业ETF",
+      "source": "https://e.gtfund.com/Etrade/Jijin/etflist",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "innovative",
+      "name": "创新药ETF银华",
+      "code": "159992",
+      "fullName": "银华中证创新药产业ETF",
+      "source": "https://www.szse.cn/disclosure/notice/t20200407_575761.html",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "medicine",
+      "name": "医药ETF易方达",
+      "code": "512010",
+      "fullName": "易方达沪深300医药卫生ETF",
+      "source": "https://www.sse.com.cn/disclosure/fund/announcement/c/2020-01-17/512010_20200118_2.pdf",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "bio",
+      "name": "生物医药ETF国泰",
+      "code": "512290",
+      "fullName": "国泰中证生物医药ETF",
+      "source": "https://e.gtfund.com/etrade/Jijin/view/id/512290",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "oil",
+      "name": "石油ETF鹏华（油气）",
+      "code": "159697",
+      "fullName": "鹏华国证石油天然气ETF",
+      "source": "https://static.cninfo.com.cn/finalpage/2026-01-15/1224933081.PDF",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "bank",
+      "name": "银行ETF华宝",
+      "code": "512800",
+      "fullName": "华宝中证银行ETF",
+      "source": "https://www.sse.com.cn/disclosure/announcement/general/jjzssgg/c/c_20251229_10803330.shtml",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "security",
+      "name": "证券ETF国泰",
+      "code": "512880",
+      "fullName": "国泰中证全指证券公司ETF",
+      "source": "https://e.gtfund.com/Etrade/Jijin/etflist",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "cloud",
+      "name": "云计算ETF易方达",
+      "code": "516510",
+      "fullName": "易方达中证云计算与大数据主题ETF",
+      "source": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2026-05-19/516510_20260519_U5TR.pdf",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "software",
+      "name": "软件ETF国泰",
+      "code": "515230",
+      "fullName": "国泰中证全指软件ETF",
+      "source": "https://e.gtfund.com/Etrade/Jijin/etflist",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "materials",
+      "name": "有色ETF鹏华",
+      "code": "159880",
+      "fullName": "鹏华国证有色金属行业ETF",
+      "source": "https://static.cninfo.com.cn/finalpage/2026-01-15/1224933081.PDF",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "discretionary",
+      "name": "可选消费ETF广发",
+      "code": "159936",
+      "fullName": "广发中证全指可选消费ETF",
+      "source": "https://www.gffunds.com.cn/proxy/pcflist/159936?_time=20260330",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "staples",
+      "name": "消费ETF汇添富",
+      "code": "159928",
+      "fullName": "汇添富中证主要消费ETF",
+      "source": "https://www.99fund.com/main/products/pofund/159928/fundseat.shtml",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "property",
+      "name": "房地产ETF南方",
+      "code": "512200",
+      "fullName": "南方中证全指房地产ETF",
+      "source": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2026-01-13/560100_20260113_2VD9.pdf",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "utilities",
+      "name": "公用事业ETF华夏",
+      "code": "159301",
+      "fullName": "华夏中证全指公用事业ETF",
+      "source": "https://www.chinaamc.com/upload/Attach/mrbj/78750131923.pdf",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "defense",
+      "name": "军工ETF国泰",
+      "code": "512660",
+      "fullName": "国泰中证军工ETF",
+      "source": "https://e.gtfund.com/Etrade/Jijin/etflist",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "machinery",
+      "name": "机械ETF国泰",
+      "code": "516960",
+      "fullName": "国泰中证细分机械设备产业主题ETF",
+      "source": "https://e.gtfund.com/etrade/Jijin/view/id/516960",
+      "verifiedAt": "2026-10-15"
+    },
+    {
+      "id": "media",
+      "name": "传媒ETF广发",
+      "code": "512980",
+      "fullName": "广发中证传媒ETF",
+      "source": "https://www.gffunds.com.cn/funds/?fundcode=512980",
+      "verifiedAt": "2026-10-15"
+    }
+  ],
+  "sector": {
+    "Basic Materials": {
+      "zh": "基础材料",
+      "etfs": [
+        {
+          "id": "materials",
+          "relation": "indirect"
+        }
+      ],
+      "note": "有色金属是基础材料中的子方向，间接关联。"
+    },
+    "Communication Services": {
+      "zh": "通信服务",
+      "etfs": [
+        {
+          "id": "media",
+          "relation": "indirect"
+        }
+      ],
+      "note": "传媒仅覆盖通信服务中的内容与传播方向，间接关联。"
+    },
+    "Consumer Cyclical": {
+      "zh": "可选消费",
+      "etfs": [
+        {
+          "id": "discretionary",
+          "relation": "direct"
+        }
+      ]
+    },
+    "Consumer Defensive": {
+      "zh": "必需消费",
+      "etfs": [
+        {
+          "id": "staples",
+          "relation": "direct"
+        }
+      ]
+    },
+    "Energy": {
+      "zh": "能源",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "indirect"
+        }
+      ]
+    },
+    "Financial Services": {
+      "zh": "金融服务",
+      "etfs": [
+        {
+          "id": "bank",
+          "relation": "indirect"
+        },
+        {
+          "id": "security",
+          "relation": "indirect"
+        }
+      ]
+    },
+    "Healthcare": {
+      "zh": "医疗保健",
+      "etfs": [
+        {
+          "id": "medicine",
+          "relation": "direct"
+        }
+      ]
+    },
+    "Industrials": {
+      "zh": "工业",
+      "etfs": [
+        {
+          "id": "machinery",
+          "relation": "indirect"
+        },
+        {
+          "id": "defense",
+          "relation": "indirect"
+        }
+      ],
+      "note": "机械、军工分别覆盖工业中的部分子方向，间接关联。"
+    },
+    "Real Estate": {
+      "zh": "房地产",
+      "etfs": [
+        {
+          "id": "property",
+          "relation": "direct"
+        }
+      ]
+    },
+    "Technology": {
+      "zh": "信息科技",
+      "etfs": [
+        {
+          "id": "star50",
+          "relation": "indirect"
+        }
+      ]
+    },
+    "Utilities": {
+      "zh": "公用事业",
+      "etfs": [
+        {
+          "id": "utilities",
+          "relation": "direct"
+        }
+      ]
+    }
+  },
+  "industry": {
+    "Advertising Agencies": {
+      "zh": "广告代理",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Aerospace & Defense": {
+      "zh": "航空航天与国防",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Agricultural - Machinery": {
+      "zh": "农业机械",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Agricultural Farm Products": {
+      "zh": "农产品",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Agricultural Inputs": {
+      "zh": "农业投入品",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Airlines, Airports & Air Services": {
+      "zh": "航空公司、机场与航空服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Apparel - Footwear & Accessories": {
+      "zh": "鞋类与服饰配件",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Apparel - Manufacturers": {
+      "zh": "服装制造",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Apparel - Retail": {
+      "zh": "服装零售",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Auto - Dealerships": {
+      "zh": "汽车经销",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Auto - Manufacturers": {
+      "zh": "汽车制造",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Auto - Parts": {
+      "zh": "汽车零部件",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Auto - Recreational Vehicles": {
+      "zh": "休闲车辆",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Banks": {
+      "zh": "银行",
+      "etfs": [
+        {
+          "id": "bank",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Financial Services"
+    },
+    "Banks - Diversified": {
+      "zh": "综合银行",
+      "etfs": [
+        {
+          "id": "bank",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Financial Services"
+    },
+    "Banks - Regional": {
+      "zh": "区域银行",
+      "etfs": [
+        {
+          "id": "bank",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Financial Services"
+    },
+    "Beverages - Alcoholic": {
+      "zh": "酒精饮料",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Beverages - Non-Alcoholic": {
+      "zh": "非酒精饮料",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Beverages - Wineries & Distilleries": {
+      "zh": "葡萄酒与蒸馏酒",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Biotechnology": {
+      "zh": "生物科技",
+      "etfs": [
+        {
+          "id": "innovative",
+          "relation": "direct"
+        },
+        {
+          "id": "bio",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Healthcare"
+    },
+    "Broadcasting": {
+      "zh": "广播电视",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Business Equipment & Supplies": {
+      "zh": "商用设备与用品",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Chemicals": {
+      "zh": "化工",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Chemicals - Specialty": {
+      "zh": "特种化学品",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Coal": {
+      "zh": "煤炭",
+      "etfs": [],
+      "sector": "Energy"
+    },
+    "Communication Equipment": {
+      "zh": "通信设备",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Computer Hardware": {
+      "zh": "计算机硬件",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Conglomerates": {
+      "zh": "综合企业",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Construction": {
+      "zh": "建筑施工",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Construction Materials": {
+      "zh": "建筑材料",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Consulting Services": {
+      "zh": "咨询服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Consumer Electronics": {
+      "zh": "消费电子",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Copper": {
+      "zh": "铜",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Department Stores": {
+      "zh": "百货商店",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Discount Stores": {
+      "zh": "折扣零售",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Diversified Utilities": {
+      "zh": "综合公用事业",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Drug Manufacturers - General": {
+      "zh": "综合制药",
+      "etfs": [
+        {
+          "id": "medicine",
+          "relation": "direct"
+        },
+        {
+          "id": "innovative",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Healthcare"
+    },
+    "Drug Manufacturers - Specialty & Generic": {
+      "zh": "专科药与仿制药",
+      "etfs": [
+        {
+          "id": "medicine",
+          "relation": "direct"
+        },
+        {
+          "id": "innovative",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Healthcare"
+    },
+    "Education & Training Services": {
+      "zh": "教育培训",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Electrical Equipment & Parts": {
+      "zh": "电气设备与零件",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Electronic Gaming & Multimedia": {
+      "zh": "电子游戏与多媒体",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Engineering & Construction": {
+      "zh": "工程与建筑",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Entertainment": {
+      "zh": "娱乐",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Financial - Capital Markets": {
+      "zh": "资本市场",
+      "etfs": [
+        {
+          "id": "security",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Financial Services"
+    },
+    "Financial - Conglomerates": {
+      "zh": "综合金融",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Financial - Credit Services": {
+      "zh": "信贷服务",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Financial - Data & Stock Exchanges": {
+      "zh": "金融数据与交易所",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Financial - Mortgages": {
+      "zh": "按揭金融",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Food Confectioners": {
+      "zh": "糖果食品",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Food Distribution": {
+      "zh": "食品分销",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Furnishings, Fixtures & Appliances": {
+      "zh": "家具、家居与电器",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Gambling, Resorts & Casinos": {
+      "zh": "博彩、度假村与赌场",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Gold": {
+      "zh": "黄金",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Grocery Stores": {
+      "zh": "食品杂货零售",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Hardware, Equipment & Parts": {
+      "zh": "硬件设备与零部件",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Home Improvement": {
+      "zh": "家装零售",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Household & Personal Products": {
+      "zh": "家庭与个人用品",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Independent Power Producers": {
+      "zh": "独立发电商",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Industrial - Distribution": {
+      "zh": "工业品分销",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Industrial - Machinery": {
+      "zh": "工业机械",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Industrial - Pollution & Treatment Controls": {
+      "zh": "工业污染治理",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Industrial Materials": {
+      "zh": "工业材料",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Information Technology Services": {
+      "zh": "信息技术服务",
+      "etfs": [
+        {
+          "id": "cloud",
+          "relation": "chain"
+        }
+      ],
+      "sector": "Technology"
+    },
+    "Insurance - Brokers": {
+      "zh": "保险经纪",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Insurance - Diversified": {
+      "zh": "综合保险",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Insurance - Life": {
+      "zh": "人寿保险",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Insurance - Property & Casualty": {
+      "zh": "财产与意外保险",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Insurance - Reinsurance": {
+      "zh": "再保险",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Insurance - Specialty": {
+      "zh": "专业保险",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Integrated Freight & Logistics": {
+      "zh": "综合货运与物流",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Internet Content & Information": {
+      "zh": "互联网内容与信息",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Investment - Banking & Investment Services": {
+      "zh": "投资银行与投资服务",
+      "etfs": [
+        {
+          "id": "security",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Financial Services"
+    },
+    "Leisure": {
+      "zh": "休闲用品与服务",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Luxury Goods": {
+      "zh": "奢侈品",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Manufacturing - Metal Fabrication": {
+      "zh": "金属制品制造",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Manufacturing - Textiles": {
+      "zh": "纺织制造",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Manufacturing - Tools & Accessories": {
+      "zh": "工具与配件制造",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Marine Shipping": {
+      "zh": "海运",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Medical - Care Facilities": {
+      "zh": "医疗照护机构",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Devices": {
+      "zh": "医疗器械",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Diagnostics & Research": {
+      "zh": "医学诊断与研究",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Distribution": {
+      "zh": "医药分销",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Equipment & Services": {
+      "zh": "医疗设备与服务",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Healthcare Information Services": {
+      "zh": "医疗信息服务",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Healthcare Plans": {
+      "zh": "医疗保险计划",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Instruments & Supplies": {
+      "zh": "医疗仪器与耗材",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Medical - Pharmaceuticals": {
+      "zh": "医药制品",
+      "etfs": [
+        {
+          "id": "medicine",
+          "relation": "direct"
+        },
+        {
+          "id": "innovative",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Healthcare"
+    },
+    "Medical - Specialties": {
+      "zh": "专科医疗",
+      "etfs": [],
+      "sector": "Healthcare"
+    },
+    "Oil & Gas Drilling": {
+      "zh": "油气钻探",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "chain"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Energy": {
+      "zh": "油气能源",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Equipment & Services": {
+      "zh": "油气设备与服务",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "chain"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Exploration & Production": {
+      "zh": "油气勘探与开采",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Integrated": {
+      "zh": "综合油气",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Midstream": {
+      "zh": "油气储运",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Oil & Gas Refining & Marketing": {
+      "zh": "油气炼化与销售",
+      "etfs": [
+        {
+          "id": "oil",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Energy"
+    },
+    "Other Precious Metals": {
+      "zh": "其他贵金属",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Packaged Foods": {
+      "zh": "包装食品",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Packaging & Containers": {
+      "zh": "包装与容器",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Paper, Lumber & Forest Products": {
+      "zh": "造纸、木材与林产品",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Personal Products & Services": {
+      "zh": "个人产品与服务",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Publishing": {
+      "zh": "出版",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "REIT - Diversified": {
+      "zh": "多元化房地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Healthcare Facilities": {
+      "zh": "医疗地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Hotel & Motel": {
+      "zh": "酒店地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Industrial": {
+      "zh": "工业地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Mortgage": {
+      "zh": "抵押贷款房地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Office": {
+      "zh": "办公地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Residential": {
+      "zh": "住宅地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Retail": {
+      "zh": "零售地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "REIT - Specialty": {
+      "zh": "专业地产信托",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "Railroads": {
+      "zh": "铁路",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Real Estate - Development": {
+      "zh": "房地产开发",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "Real Estate - Diversified": {
+      "zh": "综合房地产",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "Real Estate - Services": {
+      "zh": "房地产服务",
+      "etfs": [],
+      "sector": "Real Estate"
+    },
+    "Regulated Electric": {
+      "zh": "受监管电力",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Regulated Gas": {
+      "zh": "受监管燃气",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Regulated Water": {
+      "zh": "受监管水务",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Renewable Utilities": {
+      "zh": "可再生能源公用事业",
+      "etfs": [],
+      "sector": "Utilities"
+    },
+    "Rental & Leasing Services": {
+      "zh": "租赁服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Residential Construction": {
+      "zh": "住宅建筑",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Restaurants": {
+      "zh": "餐饮",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Security & Protection Services": {
+      "zh": "安保服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Semiconductors": {
+      "zh": "半导体",
+      "etfs": [
+        {
+          "id": "semi",
+          "relation": "direct"
+        },
+        {
+          "id": "chip",
+          "relation": "direct"
+        }
+      ],
+      "sector": "Technology"
+    },
+    "Shell Companies": {
+      "zh": "壳公司",
+      "etfs": [],
+      "sector": "Financial Services"
+    },
+    "Software - Application": {
+      "zh": "应用软件",
+      "etfs": [
+        {
+          "id": "software",
+          "relation": "direct"
+        },
+        {
+          "id": "cloud",
+          "relation": "indirect"
+        }
+      ],
+      "sector": "Technology"
+    },
+    "Software - Infrastructure": {
+      "zh": "基础设施软件",
+      "etfs": [
+        {
+          "id": "software",
+          "relation": "direct"
+        },
+        {
+          "id": "cloud",
+          "relation": "indirect"
+        }
+      ],
+      "sector": "Technology"
+    },
+    "Software - Services": {
+      "zh": "软件服务",
+      "etfs": [
+        {
+          "id": "software",
+          "relation": "direct"
+        },
+        {
+          "id": "cloud",
+          "relation": "indirect"
+        }
+      ],
+      "sector": "Technology"
+    },
+    "Solar": {
+      "zh": "太阳能",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Specialty Business Services": {
+      "zh": "专业商业服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Specialty Retail": {
+      "zh": "专业零售",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Staffing & Employment Services": {
+      "zh": "人力资源与就业服务",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Steel": {
+      "zh": "钢铁",
+      "etfs": [],
+      "sector": "Basic Materials"
+    },
+    "Technology Distributors": {
+      "zh": "科技产品分销",
+      "etfs": [],
+      "sector": "Technology"
+    },
+    "Telecommunications Services": {
+      "zh": "电信服务",
+      "etfs": [],
+      "sector": "Communication Services"
+    },
+    "Tobacco": {
+      "zh": "烟草",
+      "etfs": [],
+      "sector": "Consumer Defensive"
+    },
+    "Travel Lodging": {
+      "zh": "旅游住宿",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Travel Services": {
+      "zh": "旅游服务",
+      "etfs": [],
+      "sector": "Consumer Cyclical"
+    },
+    "Trucking": {
+      "zh": "公路货运",
+      "etfs": [],
+      "sector": "Industrials"
+    },
+    "Uranium": {
+      "zh": "铀",
+      "etfs": [],
+      "sector": "Energy"
+    },
+    "Waste Management": {
+      "zh": "废弃物管理",
+      "etfs": [],
+      "sector": "Industrials"
+    }
+  },
+  "groupingNote": "本地维护的相关行业分类，仅筛选已有FMP细分记录，不合成行业涨跌幅，不代表FMP官方完整层级。未知新分类不自动归组。"
+}

@@ -34,7 +34,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
       let body = await fs.readFile(file);
       if (file === path.join(root, 'sw.js') && nextVersion) {
-        body = Buffer.from(body.toString().replace('v1.3.0', 'v1.3.1-test'));
+        body = Buffer.from(body.toString().replace('v1.4.0-dev.10', 'v1.4.0-test.2'));
       }
       const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
         '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
@@ -70,7 +70,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       await page.locator('#atr-value').fill(atr);
     };
     await page.goto(origin + '/preview/');
-    assert.equal(await page.locator('.tool-card').count(), 3);
+    assert.equal(await page.locator('.tool-card').count(), 4);
     await page.getByRole('link', { name: /ATR补仓计算器/ }).click();
     await fill();
     assert.deepEqual(await prices(), ['0.5752', '0.5622', '0.5440']);
@@ -270,7 +270,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       assert.equal(await page.locator('h1').count(), 1);
     }
     await page.goto(origin + '/preview/');
-    assert.equal(await page.locator('.tool-card').count(), 3);
+    assert.equal(await page.locator('.tool-card').count(), 4);
     await page.goto(atrUrl);
     assert.deepEqual(await stored(), before);
     await fill();
@@ -286,7 +286,7 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
       page.getByRole('button', { name: '立即更新', exact: true }).click(),
     ]);
     assert.deepEqual(await stored(), before);
-    await page.waitForFunction(() => document.querySelector('[data-app-version]').textContent.includes('v1.3.1-test'));
+    await page.waitForFunction(() => document.querySelector('[data-app-version]').textContent.includes('v1.4.0-test.2'));
     const versions = await page.evaluate(() => caches.keys());
     assert.equal(versions.filter((name) => name.startsWith('monster-slayer-kit:')).length, 1);
     nextVersion = false;
@@ -384,10 +384,10 @@ test('真实浏览器：ATR交互、持久化、布局、旧工具及PWA离线/�
 });
 
 // 正式发布升级回归：服务器仅在内存中切换旧版与正式版，源码与用户数据不变。
-test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与其他存储保留', { timeout: 120000 }, async () => {
+test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.4.0-dev.10，旧计划与其他存储保留', { timeout: 120000 }, async () => {
   const releaseWorker = await fs.readFile(path.join(root, 'sw.js'), 'utf8');
-  assert.match(releaseWorker, /const APP_VERSION = 'v1\.3\.0';/);
-  const predecessors = { v111: 'v1.1.1', dev2: 'v1.2.0-dev.2', v120: 'v1.2.0' };
+  assert.match(releaseWorker, /const APP_VERSION = 'v1\.4\.0-dev\.10';/);
+  const predecessors = { v111: 'v1.1.1', dev2: 'v1.2.0-dev.2', v120: 'v1.2.0', v130: 'v1.3.0', dev9: 'v1.4.0-dev.9' };
   const published = new Set();
   const server = http.createServer(async (request, response) => {
     try {
@@ -401,7 +401,7 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与
       let body = await fs.readFile(file);
       if (!published.has(prefix)) {
         if (file === path.join(root, 'sw.js')) {
-          let old = releaseWorker.replace("'v1.3.0'", "'" + predecessors[prefix] + "'");
+          let old = releaseWorker.replace("'v1.4.0-dev.10'", "'" + predecessors[prefix] + "'");
           if (prefix === 'v111') old = old.replace(/^.*'\.\/tools\/atr-calculator\/.*\n/gm, '');
           body = Buffer.from(old);
         } else if (prefix === 'v111' && file === path.join(root, 'index.html')) {
@@ -440,7 +440,7 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与
       old.completed[0] = true;
       let plans = [old];
       let version = 1;
-      if (prefix === 'dev2' || prefix === 'v120') {
+      if (prefix === 'dev2' || prefix === 'v120' || prefix === 'v130' || prefix === 'dev9') {
         let confirmed = core.recordTrade(core.createPlan(draft, 'confirmed-kept'),
           0, '1.088', 'confirm', '2026-10-13T04:00:00.000Z');
         confirmed = core.recordTrade(confirmed, 0, '1.087', 'correct', '2026-10-13T05:00:00.000Z');
@@ -478,14 +478,14 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与
         page.waitForNavigation(),
         page.getByRole('button', { name: '立即更新', exact: true }).click(),
       ]);
-      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
+      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.4.0-dev.10');
       assert.equal(navigations, 1);
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key), raw);
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), ratesKey), rates);
       assert.equal(await page.evaluate(() => localStorage.getItem('other-app')), 'keep');
       const cacheKeys = await page.evaluate(() => caches.keys());
       assert.equal(cacheKeys.filter((name) => name.startsWith('monster-slayer-kit:')).length, 1);
-      assert.ok(cacheKeys.some((name) => name.endsWith(':v1.3.0')));
+      assert.ok(cacheKeys.some((name) => name.endsWith(':v1.4.0-dev.10')));
       assert.equal(await page.evaluate(async (url) => (await caches.match(url)).text(), stylesheetUrl),
         await fs.readFile(path.join(root, 'assets', 'styles.css'), 'utf8'));
       assert.ok(cacheKeys.includes('unrelated-application'));
@@ -503,11 +503,11 @@ test('正式版升级：v1.1.1 / v1.2.0-dev.2 / v1.2.0 → v1.3.0，旧计划与
         assert.equal(await page.locator('.atr-corrections').count(), 1);
       }
       await page.goto(scope);
-      assert.equal(await page.locator('.tool-card').count(), 3);
-      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
+      assert.equal(await page.locator('.tool-card').count(), 4);
+      await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.4.0-dev.10');
       for (const tool of ['change-calculator', 'currency-converter']) {
         await page.goto(scope + 'tools/' + tool + '/index.html');
-        await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.3.0');
+        await page.waitForFunction(() => document.querySelector('[data-app-version]')?.textContent === '要你命3000 · v1.4.0-dev.10');
       }
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key), raw);
       assert.equal(await page.evaluate((storageKey) => localStorage.getItem(storageKey), ratesKey), rates);

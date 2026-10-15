@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f6f8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="要你命3000" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="../../manifest.webmanifest" />
+  <link rel="icon" href="../../assets/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="./us-market.css" />
+  <title>美股风向 · 要你命3000</title>
+</head>
+<body class="market-page">
+<div class="site-shell market-shell">
+  <header class="topbar">
+    <a class="back-link" href="../../index.html"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg><span>全部工具</span></a>
+    <a class="brand-mark brand-mark-small" href="../../index.html" aria-label="要你命3000 首页"><img src="../../assets/icon.svg" alt="" width="28" height="28" /></a>
+  </header>
+  <main>
+    <div class="market-heading"><div><p class="eyebrow">US MARKET / 收盘观察</p><h1>美股风向</h1></div><span class="local-badge">本地个人测试</span></div>
+    <div class="session-bar"><p>美股交易日 <strong id="trading-date">—</strong></p><label>历史日期 <select id="history-date" aria-label="历史日期" disabled><option>暂无快照</option></select></label></div>
+    <div class="data-meta"><p id="data-status" class="data-status" role="status" aria-live="polite">正在读取本地行情…</p><p class="update-note" id="updated-at">美股收盘数据更新：—</p></div>
+    <section id="indices" class="indices" aria-label="六项核心市场指标"></section>
+    <p id="indices-note" class="indices-note" aria-live="polite">来源：FMP · FRED/Nasdaq · 东方财富</p>
+    <div class="commodity-controls" id="commodity-controls"><button type="button" id="refresh-commodities" aria-busy="false">刷新商品行情</button><p id="commodity-status" role="status" aria-live="polite">仅更新黄金/原油；四个指数继续读取收盘缓存。</p></div>
+    <div class="market-controls">
+      <div class="segments" role="group" aria-label="行业分类"><button type="button" data-kind="sector" aria-pressed="true">大行业总览</button><button type="button" data-kind="industry" aria-pressed="false">细分行业TOP5</button></div>
+      <div class="segments exchange-tabs" role="group" aria-label="交易所"><button type="button" data-exchange="both" aria-pressed="false" hidden>两交易所</button><button type="button" data-exchange="NASDAQ" aria-pressed="true">NASDAQ</button><button type="button" data-exchange="NYSE" aria-pressed="false">NYSE</button></div>
+    </div>
+    <div class="source-basis"><strong>FMP交易所行业平均涨跌幅</strong><span id="basis-note">NASDAQ · 非标普500行业指数</span></div>
+    <section id="focus-strip" class="focus-strip" aria-label="重点板块速览"></section>
+    <div id="related-controls" class="related-controls" hidden><label>相关细分行业 <select id="related-filter" aria-label="相关细分行业"><option value="">全部细分行业</option></select></label><button type="button" id="back-overview">返回大行业总览</button></div>
+    <div class="scope-line"><p id="scope-label">行业强弱 · 降序</p><span id="breadth">—</span></div>
+    <section id="market-board" class="ranking" aria-labelledby="scope-label" aria-live="polite">
+      <section class="ranking-group up-board" aria-labelledby="up-title"><header><h2 id="up-title">上涨行业</h2><span id="up-count">0 条</span></header><ol id="up-list" class="ranking-list"><li class="empty-row">暂无有效行情</li></ol></section>
+      <section class="ranking-group down-board" aria-labelledby="down-title"><header><h2 id="down-title">下跌行业</h2><span id="down-count">0 条</span></header><ol id="down-list" class="ranking-list"><li class="empty-row">暂无有效行情</li></ol></section>
+      <section id="flat-group" class="ranking-group flat-board" aria-labelledby="flat-title" hidden><header><h2 id="flat-title">持平行业</h2><span id="flat-count">0 条</span></header><ol id="flat-list" class="ranking-list"></ol></section>
+    </section>
+    <p class="market-caption" id="rank-caption">上涨、下跌分组排序，条形长度共用绝对涨跌幅比例尺。点击整行查看详情。</p>
+    <details class="settings-panel" id="mapping-panel"><summary>行业与A股ETF关联设置 <span id="override-count">本机保存</span></summary>
+      <p class="help">关联仅表示行业方向，不代表成分股或收益相同。自定义方向不显示未经核实的代码。</p>
+      <p id="mapping-message" role="status" aria-live="polite"></p>
+      <form id="mapping-form">
+        <div class="editor-selectors"><label>分类<select id="edit-kind"><option value="industry">细分行业</option><option value="sector">11大行业</option></select></label><label>美股行业<select id="edit-name"></select></label></div>
+        <label class="full-label">中文名称<input id="edit-zh" type="text" maxlength="80" required /></label>
+        <div id="edit-etfs"></div>
+        <div class="editor-actions"><button type="button" id="add-etf">＋ 增加关联</button><button type="button" id="reset-mapping">恢复此行业默认</button><button type="submit" class="primary" id="save-mapping">保存关联</button></div>
+      </form>
+    </details>
+    <details class="settings-panel"><summary>数据口径与覆盖 <span>FMP</span></summary><div id="source-details"></div>
+      <p class="help">行业：FMP averageChange，交易所内分类的当日平均涨跌幅，不是统一行业指数。指数：(本次收盘价 ÷ 上一交易日收盘价 − 1) × 100。</p>
+      <p class="help">历史仅来自本机已采集且通过校验的快照。第一版不计算5日/20日行业累计收益。SOX/NBI来源为Nasdaq经FRED，按相邻美股交易日收盘计算；黄金及Brent为东方财富连续期货盘中延迟报价，采用昨结算价口径；实际报价时间与股票日期独立，交易日字段缺失时不推断。原有现货历史保留，不用于当前期货卡片回退。</p>
+      <div id="commodity-details"></div>
+      <p class="help">发布阻断项：东方财富自动访问及数据展示授权尚未明确，仅限本地个人测试；iPhone Safari/PWA尚待真机验收。CME/ICE及相关权利人的要求仍需遵守，保留来源署名不等于取得授权。</p>
+      <p class="help">交易日历校验范围：2024—2028年。<a href="https://www.nyse.com/trade/hours-calendars" target="_blank" rel="noopener noreferrer">核对NYSE日历 ↗</a></p>
+    </details>
+    <p class="version-note" data-app-version>要你命3000</p>
+  </main>
+  <footer class="site-footer">本地收盘数据 · 仅供个人观察</footer>
+</div>
+<dialog id="industry-detail" class="industry-detail" aria-labelledby="detail-title">
+  <div class="detail-heading"><div><p class="eyebrow">行业详情</p><h2 id="detail-title" tabindex="-1"></h2></div><button type="button" id="close-detail" aria-label="关闭行业详情">关闭</button></div>
+  <p id="detail-original" class="detail-original"></p>
+  <div class="detail-quote"><span id="detail-exchange"></span><strong id="detail-change"></strong><span id="detail-date"></span></div>
+  <p class="help">FMP交易所行业平均涨跌幅</p>
+  <section class="detail-section"><h3>对应A股ETF</h3><div id="detail-etfs" class="etf-tags"></div><p id="detail-note" class="help"></p></section>
+  <section class="detail-section"><div class="detail-section-heading"><h3>相关细分行业</h3><button type="button" id="detail-related">查看相关细分TOP5</button></div><p class="help">仅展示本交易所真实记录；相关分类由本地映射维护。</p><div id="detail-industries" class="detail-industries"></div></section>
+  <details id="detail-edit" class="settings-panel"><summary>编辑此行业的ETF关联</summary><div id="detail-editor"></div></details>
+</dialog>
+<script src="./market-core.js" defer></script>
+<script src="./commodity-core.js" defer></script>
+<script src="./commodity-ui.js" defer></script>
+<script src="./us-market.js" defer></script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

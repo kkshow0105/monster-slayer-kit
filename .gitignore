@@ -1,0 +1,5 @@
+# Local-only market data, request ledger and test artifacts. Never publish.
+/local-data/
+/.env
+/.env.*
+!.env.example

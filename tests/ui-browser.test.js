@@ -102,7 +102,7 @@ test('统一UI：四页响应式、首屏操作、触控尺寸与手机截图', 
         });
         assert.ok(heading.font >= 24 && heading.font <= 28);
         if (name === 'home') {
-          const bottom = await page.locator('.tool-card').last().evaluate((node) => node.getBoundingClientRect().bottom);
+          const bottom = await page.locator('.tool-card').nth(2).evaluate((node) => node.getBoundingClientRect().bottom);
           assert.ok(bottom <= viewport.height, 'all three tools fit the first viewport');
           for (const card of await page.locator('.tool-card').all()) {
             const box = await card.boundingBox();
