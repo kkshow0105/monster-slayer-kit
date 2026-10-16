@@ -153,3 +153,11 @@ Windows完整原始目录local-data/us-market/继续忽略、不移动、不删�
 详见[真实请求与口径报告](./eastmoney-index-verification.md)。SPX、纳斯达克综合（源端别名100.NDX，已核对两日IXIC历史）、SOX、NBI匿名批量fetch已在Netlify实际源的Edge跨域验证。8次真实行情请求，无重试，FMP/FRED均0次。行业未找到等价统计接口，继续使用FMP公开JSON；不混用东方财富六类个股分组。
 
 四指数新增独立缓存与刷新，30秒防重、历史隔离、失败保留；不改写正式历史，不影响商品/计算器。卡片时间为纽约报价时间，页面行业日期保持行业收盘日；延迟未获保证，绝不把盘中报价称为正式收盘。iPhone Safari/PWA仍须真机验证，授权及稳定性风险保持记录。
+
+## dev.13：独立GitHub收盘JSON
+
+四指数当前统一回到已确认完整收盘数据：FMP `^GSPC`、`^IXIC`；FRED `NASDAQSOX`、`NASDAQNBI`。行业仍为FMP交易所内averageChange，NASDAQ/NYSE分别保留。之前东方财富100.NDX与IXIC的校验依据和网络研究不删除，当前页面停止调用该指数接口。商品仍为原东方财富连续期货盘中延迟行情，与股票收盘日期独立。
+
+浏览器只读独立仓库白名单JSON。真实通道 `market/v1` 只接受 `REAL_MARKET_DATA` 指针；实验通道 `lab/publishing/v1` 使用 `SYNTHETIC_TEST_ONLY`，正式看板会拒绝。完整版本校验通过才更新显示；旧设备缓存、原站内历史、原有localStorage及离线支持继续保留。
+
+真实发布变量ALLOW_REAL_MARKET_PUBLICATION当前DISABLED，未获用户最终确认不得启用。当前云端仅模拟发布，不调用FMP/FRED，不把真实行情或密钥写入数据仓库。FMP公开展示和FRED/Nasdaq再分发许可尚待确认。

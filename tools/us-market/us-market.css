@@ -146,3 +146,7 @@ html:has(.industry-detail[open]) { overflow:hidden; }
 .commodity-controls button { flex-shrink:0; font-size:12px; padding:6px 10px; }
 .commodity-controls p { margin:0; font-size:11px; line-height:1.5; color:var(--ink-soft); overflow-wrap:anywhere; }
 .commodity-controls p[data-warning="true"] { color:var(--warning); }
+
+/* Shared close-data actions reuse the existing compact controls. */
+#index-live-controls { flex-wrap:wrap; }
+.market-update-link { display:inline-flex; align-items:center; min-height:44px; flex-shrink:0; padding:6px 10px; font-size:12px; color:var(--accent); border:1px solid var(--line); border-radius:var(--radius-md); text-decoration:none; background:var(--surface); }

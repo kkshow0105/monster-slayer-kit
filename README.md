@@ -2,7 +2,7 @@
 
 原生 HTML、CSS、JavaScript 个人工具箱，无需后端、数据库或构建步骤。
 
-美股风向当前版本为 **v1.4.0-dev.12**。四指数增加东方财富延迟报价直连、独立缓存及手动刷新；行业继续使用下述FMP公开JSON流程。真实接口验证见 `tools/us-market/eastmoney-index-verification.md`。收盘行情的白名单公开JSON纳入Git并随Netlify构建发布，解决新设备首次访问无数据；原始行情、密钥、日志继续保留在Windows私有目录。黄金/Brent仍独立按盘中延迟行情刷新。下文dev.1—dev.10为历史开发记录，现行共享与发布流程以文末dev.11说明为准。
+美股风向当前本地开发版本为 **v1.4.0-dev.13**。四指数与行业改为优先读取独立数据仓库的完整收盘JSON，保留设备缓存及站内旧历史兜底；不再请求东方财富指数接口。黄金/Brent保持原有盘中延迟行情刷新。手动更新入口跳转GitHub Actions，无前端Token、无定时任务；行情更新不触发Netlify部署。**真实行情公开发布仍关闭**，本轮仅在独立实验通道发布明确标记的模拟JSON，正式看板会拒绝该模拟通道。下文旧版本说明保留作历史记录，现行方案见文末dev.13。
 
 ## 使用与部署
 
@@ -443,3 +443,24 @@ node scripts/build-site.js
 全部普通功能测试Mock；另以现有真实文件进行localhost发布包验收，不调用行情源。包含无缓存首访、四指数、两交易所、历史/离线、dev.10→dev.11更新，以及仅修改其他工具再构建仍保留行情、缺数拒绝发布。缺失文件、断网、损坏JSON均有明确提示；有效离线副本继续显示，不清空用户数据。当前仅一份真实FMP日期，跨多日期切换由Mock测试，不补造真实历史。
 
 本次公开白名单数据与现有Netlify自动部署由用户明确授权，替代历史开发记录中的“仅本机/不发布”阶段安排；来源及必要版权说明保留。iPhone Safari/主屏幕PWA最终仍需真机验证。
+
+## dev.13：独立收盘数据与手动更新（本地验收）
+
+页面入口：`http://127.0.0.1:3000/tools/us-market/`。本轮不提交或部署正式项目。
+
+- 四指数及行业优先读取独立仓库的 `market/v1/latest.json`，该指针指向不可变版本目录。版本内沿用原白名单 `manifest.json / status.json / sox.json / nbi.json / snapshots/YYYY-MM-DD.json`。
+- 每个版本包括全部既有真实历史；只有四指数、NASDAQ/NYSE行业及细分行业、交易日、相邻收盘与哈希全部通过校验才切换指针。Git更新为一次非强制提交，失败保留旧指针及所有旧版本。
+- 页面先显示旧设备副本，后台检查独立仓库；站内 `local-data/us-market/` URL继续兜底。保留原snapshots:v1及ETF存储键。历史文件按需读取和校验，设备最多缓存原有30个快照，仓库历史不删除。
+- “更新行情”只打开GitHub Actions，用户须登录有写权限的账号；“检查数据更新”只读JSON，30秒防重复。没有前端Token、匿名触发接口、轮询、Netlify Functions或云数据库。
+- Raw存在约5分钟缓存传播延迟；尚未读到新版本时继续显示旧数据，并提示稍后检查，不能把它等同于采集失败。
+- 黄金/原油模块和三个计算器业务代码未改。东方财富四指数代码及身份研究文档保留，但页面不再引用或调用该指数接口。
+
+独立仓库工作流源文件是 `scripts/market-data-workflow.yml`，安装位置为数据仓库 `.github/workflows/update-market.yml`，不要安装到网站仓库。仅 `workflow_dispatch`，默认simulation，不启用schedule。
+
+真实发布开关：数据仓库Actions变量 `ALLOW_REAL_MARKET_PUBLICATION` 当前为 `DISABLED`。只有用户最终确认后，才可改为严格值 `USER_CONFIRMED` 并使用real模式；开关未通过时在采集前停止。FMP Key仅使用数据仓库GitHub Secret `FMP_API_KEY`。当前FRED复用无需Key的CSV采集器。
+
+预算仅保存为Actions内部工件，不进入Git或公开JSON。公开仓库的工件可被登录GitHub用户下载，因此只含脱敏日期、计数、状态。工件上传成功才允许采集；每批最多FMP6/FRED2，先等FRED就绪再请求FMP，402/429及网络失败不重试。累计每日FMP20、FRED4；失败/取消不退预留次数；恢复失败则停止，不从0重新计算。外部共用FMP Key的调用须在手动运行的external_fmp_calls中计入。完整日期已保存则0请求跳过。
+
+首次真实启用还会在独立开关之后，从已审核的网站Git提交 `8996c60cd125dfd78736c3064eebfefa7cf94f11` 引入现有2026-10-14白名单历史种子；本轮没有执行该真实引入。当前模拟发布专用路径为 `lab/publishing/v1/`，指针kind必须为 `SYNTHETIC_TEST_ONLY`，生产读取器拒绝该kind。不得将模拟文件复制到真实通道冒充行情。
+
+真实发布前仍须用户最终确认：FMP及FRED/Nasdaq的公开展示/再分发条件、真实历史种子的公开同步、每日额度基线，以及是否允许启用开关。之后还需正式HTTPS来源与iPhone Safari/已安装PWA真机验收。
