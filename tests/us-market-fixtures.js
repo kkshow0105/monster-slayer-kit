@@ -33,4 +33,9 @@ function commodities(now=Date.now()) {
   list.push({dm:'B00Y',sc:112,p:90,zjsj:100,zdf:-10,zde:-10,utime,qrspj:120,o:110});
   return {total:list.length,list};
 }
-module.exports = { commodities, rows, closes, snapshot, mockFetch, sox, soxCsv, daily, dailyCsv };
+function indexQuotes(at='2026-10-15T19:59:00Z') {
+  // Synthetic values only; never sent to a third party or written to public-data.
+  const defs=[['SPX',100,'标普500',121,110,10],['NDX',100,'纳斯达克',99,110,-10],['SOX',251,'费城半导体指数',10450,9500,10],['NBI',251,'纳斯达克生物科技指数',94.5,105,-10]];
+  return {rc:0,data:{total:4,diff:defs.map(([f12,f13,f14,f2,f18,f3])=>({f12,f13,f14,f2,f18,f3,f124:Date.parse(at)/1000,f152:2}))}};
+}
+module.exports = { indexQuotes, commodities, rows, closes, snapshot, mockFetch, sox, soxCsv, daily, dailyCsv };

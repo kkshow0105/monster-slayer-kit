@@ -1,5 +1,5 @@
 // 发布新版本时只需递增这里的版本号，并把整个项目一起上传。
-const APP_VERSION = 'v1.4.0-dev.11';
+const APP_VERSION = 'v1.4.0-dev.12';
 const CACHE_PREFIX = `monster-slayer-kit:${encodeURIComponent(self.registration.scope)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const APP_SHELL = [
@@ -22,6 +22,7 @@ const APP_SHELL = [
   './tools/us-market/index.html',
   './tools/us-market/market-core.js',
   './tools/us-market/us-market.js',
+  './tools/us-market/index-live-core.js',
   './tools/us-market/commodity-core.js',
   './tools/us-market/commodity-ui.js',
   './tools/us-market/us-market.css',

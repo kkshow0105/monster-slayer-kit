@@ -41,23 +41,27 @@ async function setup(run, basePath='', contextOptions={}) {
   try{
     browser=await chromium.launch({channel:'msedge',headless:true});
     const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,...contextOptions});
-    let forbidden=0,commodityHandler=null; const commodityRequests=[];
+    let forbidden=0,commodityHandler=null,indexHandler=null; const commodityRequests=[],indexRequests=[];
     await context.route('**/*',route=>{
       if(new URL(route.request().url()).hostname==='futsseapi.eastmoney.com'){
         commodityRequests.push(route.request().url());
         return commodityHandler?commodityHandler(route):route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture.commodities())});
+      }
+      if(new URL(route.request().url()).hostname==='push2.eastmoney.com'){
+        indexRequests.push(route.request().url());
+        return indexHandler?indexHandler(route):route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({rc:100,data:null})});
       }
       if(new URL(route.request().url()).hostname!=='127.0.0.1'){forbidden++;return route.abort();}return route.continue();
     });
     const origin='http://127.0.0.1:'+server.address().port+basePath;
     const page=await context.newPage(), errors=[],consoleErrors=[];
     page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
-    await run({page,context,origin,dir,consoleErrors,commodityRequests,localDataRequests,setCommodityMock:handler=>{commodityHandler=handler;},upgrade:()=>{nextVersion=true;}});
+    await run({page,context,origin,dir,consoleErrors,commodityRequests,indexRequests,localDataRequests,setIndexMock:handler=>{indexHandler=handler;},setCommodityMock:handler=>{commodityHandler=handler;},upgrade:()=>{nextVersion=true;}});
     assert.deepEqual(errors,[]);assert.equal(forbidden,0,'browser must not call any real external API; Eastmoney is fulfilled by Mock');
     await context.close();
   }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));await fs.rm(dir,{recursive:true,force:true});}
 }
-async function ready(page,origin){await page.goto(origin+'/tools/us-market/');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');await page.waitForFunction(()=>document.querySelector('#commodity-controls').dataset.state!=='loading');}
+async function ready(page,origin){await page.goto(origin+'/tools/us-market/');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');await page.waitForFunction(()=>document.querySelector('#commodity-controls').dataset.state!=='loading');await page.waitForFunction(()=>document.querySelector('#index-live-controls').dataset.state!=='loading');}
 async function layout(page){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);const small=await page.locator('input,select').evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length&&parseFloat(getComputedStyle(n).fontSize)<16&&n.id!=='history-date').map(n=>n.id));assert.deepEqual(small,[]);}
 test('Mock真实浏览器：涨跌分组、5种模式、历史切换、手机/桌面布局、无外部请求', {timeout:120000},async()=>setup(async({page,origin,consoleErrors})=>{
   await ready(page,origin); const data=fixture.snapshot();
@@ -88,8 +92,8 @@ test('Mock真实浏览器：涨跌分组、5种模式、历史切换、手机/�
     }
   }
   await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');assert.match(await page.locator('#data-status').textContent(),/历史快照/);
-  await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');
-  await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');
+  await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
+  await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
   assert.deepEqual(consoleErrors,[]);
 }));
 
@@ -109,7 +113,7 @@ test('详情共用本机映射：增删编辑立即同步、刷新恢复、旧�
   assert.equal(await page.locator('#detail-title').textContent(),'自定义半导体');assert.match(await page.locator('#detail-etfs').textContent(),/自定义观察方向/);
   assert.equal(await page.locator('#detail-etfs .etf-tag').last().locator('code').count(),0);
   await page.locator('#close-detail').click();assert.match(await row.textContent(),/自定义半导体/);assert.doesNotMatch(await row.textContent(),/自定义观察方向|ETF/);
-  await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');
+  await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
   await page.locator('button[data-kind="industry"]').click();await page.locator('button[data-exchange="NASDAQ"]').click();await row.click();
   assert.equal(await page.locator('#detail-title').textContent(),'自定义半导体');assert.match(await page.locator('#detail-etfs').textContent(),/自定义观察方向/);
   await page.locator('#detail-edit summary').click();assert.equal(await page.locator('#edit-zh').inputValue(),'自定义半导体');
@@ -117,7 +121,7 @@ test('详情共用本机映射：增删编辑立即同步、刷新恢复、旧�
   await page.keyboard.press('Escape');await page.locator('#industry-detail').waitFor({state:'hidden'});
   await page.locator('#mapping-panel summary').click();assert.equal(await page.locator('#mapping-panel #mapping-form').count(),1);
   assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('unrelated'),localStorage.getItem('monster-slayer-kit:atr-plans:v1')]),['keep','preserve-atr']);
-  await page.evaluate(key=>localStorage.setItem(key,'{"version":999,"entries":{}}'),MAP);await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');
+  await page.evaluate(key=>localStorage.setItem(key,'{"version":999,"entries":{}}'),MAP);await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
   await page.locator('#mapping-panel summary').click();assert.equal(await page.locator('#save-mapping').isDisabled(),true);assert.equal(await page.evaluate(key=>localStorage.getItem(key),MAP),'{"version":999,"entries":{}}');
 }));
 
@@ -126,19 +130,19 @@ test('异常/过期/未知分类和缺日：不采用无效数据、不伪造历
   await atomicJson(path.join(dir,'snapshots/2026-10-14.json'),data);
   await atomicJson(path.join(dir,'status.json'),{version:1,lastAttempt:{success:false,date:'2026-10-15',message:'HTTP 429'}});
   await ready(page,origin);await page.locator('button[data-kind="industry"]').click();assert.match(await page.locator('#up-list').textContent(),/未译行业/);assert.match(await page.locator('#up-list').textContent(),/New Untranslated Industry/);await page.locator('#up-list .market-row').first().locator('button').click();assert.match(await page.locator('#detail-etfs').textContent(),/暂无对应ETF/);await page.locator('#close-detail').click();assert.match(await page.locator('#data-status').textContent(),/数据过期.*采集失败/);
-  await atomicJson(path.join(dir,'manifest.json'),{version:1,dates:['2026-09-07'],latest:'2026-09-07'});await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');assert.match(await page.locator('#data-status').textContent(),/保存副本/);assert.equal(await page.locator('#history-date option[value="2026-09-07"]').count(),0);
+  await atomicJson(path.join(dir,'manifest.json'),{version:1,dates:['2026-09-07'],latest:'2026-09-07'});await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.match(await page.locator('#data-status').textContent(),/保存副本/);assert.equal(await page.locator('#history-date option[value="2026-09-07"]').count(),0);
 }));
 test('根路径和子路径PWA：手动更新仅刷新一次、离线可读、数据保留', {timeout:120000},async()=>{
   for(const basePath of ['','/preview'])await setup(async({page,context,origin,upgrade})=>{
     await ready(page,origin);await page.evaluate(async()=>{await navigator.serviceWorker.ready;localStorage.setItem('unrelated','keep');await caches.open('unrelated-cache');});
     await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);assert.equal(await page.locator('#pwa-update').isVisible(),false);
-    await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');
+    await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
     upgrade();await page.evaluate(async()=>{const reg=await navigator.serviceWorker.getRegistration();await reg.update();});
     await page.locator('#pwa-update button').waitFor({state:'visible'});assert.equal(await page.locator('[data-app-version]').textContent(),'要你命3000 · v1.3.0-test');
     let navigations=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigations++;});
     await page.locator('#pwa-update button').click();await page.waitForFunction(()=>document.querySelector('[data-app-version]').textContent.includes('v1.4.0-test'));
     assert.equal(navigations,1);assert.equal(await page.evaluate(()=>localStorage.getItem('unrelated')),'keep');assert.ok(await page.evaluate(async()=>(await caches.keys()).includes('unrelated-cache')));
-    await context.setOffline(true);await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');assert.match(await page.locator('#data-status').textContent(),/保存副本/);assert.equal(await page.locator('.index-tile[data-symbol="SOX"] .index-change').textContent(),'-5.00%');assert.equal(await page.locator('.index-tile[data-symbol="NBI"] .index-point').textContent(),'105.00');assert.equal(await page.locator('.index-tile[data-symbol="B00Y"] .index-point').textContent(),'90.00');
+    await context.setOffline(true);await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.match(await page.locator('#data-status').textContent(),/保存副本/);assert.equal(await page.locator('.index-tile[data-symbol="SOX"] .index-change').textContent(),'-5.00%');assert.equal(await page.locator('.index-tile[data-symbol="NBI"] .index-point').textContent(),'105.00');assert.equal(await page.locator('.index-tile[data-symbol="B00Y"] .index-point').textContent(),'90.00');
     await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');
     await context.setOffline(false);
     const cacheNames=await page.evaluate(async()=>caches.keys());assert.equal(cacheNames.filter(n=>n.includes('monster-slayer-kit:')).length,1);
@@ -311,7 +315,7 @@ test('FMP指数逐项延迟、缺失和未来值隔离，历史切换自动重�
     for(const [other] of Object.entries(core.ACTIVE_INDEXES))if(other!==symbol)assert.equal(await page.locator('.index-tile[data-symbol="'+other+'"] .index-change').textContent(),'+10.00%');
     await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');
     if(symbol!=='SOX'){assert.equal(await card.locator('.index-change').textContent(),'+10.00%');assert.equal(await card.locator('.index-delay').count(),0);assert.equal(await card.locator('.index-meta').textContent(),'');}
-    await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');assert.equal(await card.locator('.index-delay').count(),mode==='stale'?1:0);
+    await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.equal(await card.locator('.index-delay').count(),mode==='stale'?1:0);
   });
 });
 
@@ -393,7 +397,7 @@ test('商品浏览器Mock：缺失/时分秒/无效/未来时间保守标记，�
 
 test('商品浏览器Mock：重新打开30秒防重、离线缓存、退出取消及PWA动态请求不入缓存', {timeout:120000},async()=>setup(async({page,context,origin,commodityRequests,setCommodityMock})=>{
  await page.clock.install();await ready(page,origin);await page.evaluate(()=>navigator.serviceWorker.ready);
- await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14');assert.equal(commodityRequests.length,1);assert.equal(await page.locator('.commodity-tile[data-status="cached"]').count(),2);
+ await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.equal(commodityRequests.length,1);assert.equal(await page.locator('.commodity-tile[data-status="cached"]').count(),2);
  await context.setOffline(true);await page.waitForFunction(()=>document.querySelector('#commodity-status').textContent.includes('离线'));assert.match(await page.locator('.commodity-tile').first().textContent(),/缓存行情/);
  await page.clock.fastForward(31000);await page.locator('#refresh-commodities').click();await page.waitForFunction(()=>document.querySelector('#commodity-controls').dataset.state==='error');assert.equal(commodityRequests.length,1,'离线不发实际请求');
  await context.setOffline(false);await page.clock.fastForward(31000);
@@ -513,3 +517,41 @@ test('单个补充指数文件异常：其他行情继续显示、明确原因�
   assert.match(await page.locator('#data-status').textContent(),symbol==='SOX'?/SOX：行情文件缺失.*404/:/NBI：JSON损坏/);assert.equal(await page.locator('#data-status').getAttribute('data-warning'),'true');
  });
 });
+
+
+test('指数直连Mock：首访一次、30秒防重、手动刷新不触发商品/静态采集、历史隔离及失败缓存', {timeout:120000},async()=>setup(async({page,context,origin,setIndexMock,indexRequests,commodityRequests,localDataRequests})=>{
+ await page.clock.install({time:new Date('2026-10-16T00:30:00Z')});
+ let broken=false;setIndexMock(route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(broken?{rc:100,data:null}:fixture.indexQuotes())}));
+ await ready(page,origin);assert.equal(indexRequests.length,1);assert.doesNotMatch(await page.locator('#data-status').textContent(),/正在校验/);
+ assert.equal(await page.locator('.index-tile[data-symbol="^GSPC"] .index-point').textContent(),'121.00');
+ assert.equal(await page.locator('.index-tile[data-symbol="^IXIC"] .index-point').textContent(),'99.00');
+ assert.match(await page.locator('.index-tile[data-symbol="^IXIC"]').getAttribute('title'),/综合指数.*100.NDX.*非Nasdaq-100/);
+ assert.match(await page.locator('.index-tile[data-symbol="SOX"] .index-meta').textContent(),/较旧报价10-15 15:59/);
+ assert.equal(await page.locator('#trading-date').textContent(),'2026-10-14');assert.match(await page.locator('#basis-note').textContent(),/NASDAQ/);
+ assert.match(await page.locator('.session-bar p').textContent(),/^行业收盘交易日/);
+ for(const symbol of ['^GSPC','^IXIC','SOX','NBI']){const card=page.locator('.index-tile[data-symbol="'+symbol+'"]');assert.match(await card.locator('time').getAttribute('datetime'),/^2026-10-15T/);assert.match(await card.getAttribute('title'),/非已确认日线收盘.*交易日：2026-10-15/);assert.match(await card.locator('.index-meta').textContent(),/报价10-15/);}
+ assert.match(await page.locator('#index-live-status').textContent(),/独立于行业收盘日/);
+ const before=await page.locator('#market-board').textContent(),commodityCount=commodityRequests.length;
+ for(const width of [320,375,390,430,1440]){await page.setViewportSize({width,height:900});await layout(page);const boxes=await page.locator('#indices .index-tile').evaluateAll(nodes=>nodes.map(n=>({x:n.offsetLeft,y:n.offsetTop,w:n.offsetWidth,h:n.offsetHeight})));assert.equal(new Set(boxes.map(b=>b.x)).size,width<1001?2:6);assert.equal(new Set(boxes.map(b=>b.w)).size,1);assert.equal(new Set(boxes.map(b=>b.h)).size,1);if(process.env.MARKET_SCREENSHOT_DIR&&(width===320||width===1440)){await fs.mkdir(process.env.MARKET_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.MARKET_SCREENSHOT_DIR,'live-indices-mock-'+width+'.png'),fullPage:true});}}
+ await page.evaluate(()=>{for(let i=0;i<8;i++)document.querySelector('#refresh-indices').click()});assert.equal(indexRequests.length,1);
+ await page.locator('#history-date').selectOption('2026-10-13');await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-13');assert.equal(await page.locator('.index-tile[data-symbol="^GSPC"] .index-point').textContent(),'110.00');assert.equal(await page.locator('#indices .index-tile:not(.commodity-tile) time').count(),0);assert.match(await page.locator('#index-live-status').textContent(),/历史页/);assert.equal(indexRequests.length,1);
+ await page.locator('#history-date').selectOption('2026-10-14');await page.waitForFunction(()=>document.querySelector('.index-tile[data-symbol="^GSPC"] .index-point').textContent==='121.00');
+ const count=localDataRequests.length;await page.clock.fastForward(30001);await page.locator('#refresh-indices').click();await page.waitForFunction(()=>document.querySelector('#index-live-controls').dataset.state!=='loading');assert.equal(indexRequests.length,2);assert.equal(localDataRequests.length,count);assert.equal(commodityRequests.length,commodityCount);assert.equal(await page.locator('#market-board').textContent(),before);
+ broken=true;await page.clock.fastForward(30001);await page.locator('#refresh-indices').click();await page.waitForFunction(()=>document.querySelector('#index-live-controls').dataset.state==='error');assert.equal(indexRequests.length,3);assert.equal(await page.locator('.index-tile[data-symbol="^GSPC"] .index-point').textContent(),'121.00');assert.match(await page.locator('.index-tile[data-symbol="^GSPC"] .index-meta').textContent(),/缓存报价/);
+ await page.evaluate(async()=>{await navigator.serviceWorker.ready});await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.equal(indexRequests.length,3);
+ await context.setOffline(true);await page.reload();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');assert.equal(await page.locator('.index-tile[data-symbol="^GSPC"] .index-point').textContent(),'121.00');assert.match(await page.locator('.index-tile[data-symbol="^GSPC"] .index-meta').textContent(),/缓存报价/);await context.setOffline(false);
+}));
+
+test('无有效指数网络时继续使用真实结构历史JSON；同日纳指身份校验防止错误替代', {timeout:120000},async()=>setup(async({page,origin,setIndexMock})=>{
+ const wrong=fixture.indexQuotes();wrong.data.diff[1].f18=100;wrong.data.diff[1].f2=90;
+ setIndexMock(route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(wrong)}));await ready(page,origin);
+ assert.equal(await page.locator('.index-tile[data-symbol="^IXIC"] .index-point').textContent(),'110.00');assert.match(await page.locator('.index-tile[data-symbol="^IXIC"]').getAttribute('title'),/来源：FMP/);
+ assert.equal(await page.locator('.index-tile[data-symbol="SOX"] .index-point').textContent(),'9,500.00');assert.match(await page.locator('#index-live-status').textContent(),/拒绝替换/);
+}));
+
+test('设备副本先显示：静态JSON尚在读取时不会先清空已保存行情', {timeout:120000},async()=>setup(async({page,context,origin,setIndexMock})=>{
+ setIndexMock(route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fixture.indexQuotes())}));await ready(page,origin);
+ let release,hit;const held=new Promise(r=>release=r),requested=new Promise(r=>hit=r);await context.route('**/tools/us-market/mappings.json',async route=>{hit();await held;await route.continue();});
+ await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('.index-tile[data-symbol="^GSPC"] .index-point')?.textContent==='121.00');
+ await requested;assert.match(await page.locator('.index-tile[data-symbol="^GSPC"] .index-meta').textContent(),/缓存报价/);release();await page.waitForFunction(()=>document.querySelector('#trading-date').textContent==='2026-10-14'&&document.body.dataset.closeState==='ready');
+},'',{serviceWorkers:'block'}));

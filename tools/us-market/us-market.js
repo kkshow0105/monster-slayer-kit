@@ -5,9 +5,34 @@
   const CACHE_KEY = 'monster-slayer-kit:us-market:snapshots:v1';
   const MAP_KEY = 'monster-slayer-kit:us-market:mappings:v1';
   const $ = id => document.getElementById(id);
+  const live=window.USIndexLive;
+  let liveStorage;try{liveStorage=localStorage;}catch{liveStorage=null;}
+  let liveTimer=null;
   const state = { kind: 'sector', exchange: 'NASDAQ', sectorExchange: 'NASDAQ', industryExchange: 'both', relatedSector: '', snapshot: null, config: null, overrides: {}, mappingRaw: null,
     mappingLocked: false, cached: { version: 1, snapshots: {} }, dates: [], latest: null, status: null,
     offline: false, manifestOffline: false, manifestProblem:'', snapshotProblem:'', loadToken: 0, editBaseline: null, sox: null, soxOffline: false, soxProblem:'', extraProblems:{}, extras: { NBI:null, BRENT:null }, extrasOffline: {} };
+  const liveController=live.createController({storage:liveStorage,fetchImpl:(url,options)=>navigator.onLine===false?Promise.reject(Error('offline')):fetch(url,options),validateFresh:fresh=>{
+    const q=fresh.quotes.find(q=>q.symbol==='^IXIC'),baseline=core.indexForDate(state.snapshot?.indices,'^IXIC',state.snapshot?.tradingDate).record;
+    if(q.tradingDate&&baseline&&core.previousSession(q.tradingDate)===baseline.date&&Math.abs(q.previousClose-baseline.close)>0.011)throw Error('纳指昨收与已存IXIC不符，拒绝替换指数缓存');
+  },onChange:()=>renderIndices()});
+  let initializing=true;
+  function liveControls(){
+    const s=liveController.read(),historical=!!state.snapshot&&state.snapshot.tradingDate!==state.latest;
+    const b=$('refresh-indices');b.disabled=initializing||s.loading||s.remaining>0;b.textContent=s.loading?'正在获取指数…':'刷新美股指数';b.setAttribute('aria-busy',String(s.loading));
+    const text=[s.loading?'正在获取四指数；行业仍读历史JSON。':s.error||(s.snapshot?'四指数为东方财富延迟报价；行业仍为FMP收盘快照。':'四指数暂用历史JSON；行业仍为FMP收盘快照。')];
+    if(s.snapshot)text.push('卡片时间为纽约报价时间，独立于行业收盘日。');
+    const nq=s.snapshot?.quotes.find(q=>q.symbol==='^IXIC'),base=state.snapshot?.indices?.find(q=>q.symbol==='^IXIC');
+    if(nq?.tradingDate&&base&&core.previousSession(nq.tradingDate)===base.date&&Math.abs(nq.previousClose-base.close)>0.011)text.push('纳指报价与历史身份校验不符，已回退收盘数据。');
+    if(historical)text.push('历史页仅显示所选日收盘数据，不使用最新报价。');
+    if(s.fromCache&&s.snapshot)text.push('已保存缓存报价，实际时间见卡片。');
+    if(s.snapshot?.quotes.some(q=>Date.now()-Date.parse(q.quoteAt)>20*60000))text.push('报价较旧，不代表当前实时行情。');
+    if(!s.loading&&s.remaining>0)text.push('30秒防重。');if(s.notice)text.push(s.notice);
+    $('index-live-status').textContent=text.join(' ');$('index-live-controls').dataset.state=s.loading?'loading':s.error?'error':'ready';
+    $('index-live-status').dataset.warning=String(!!s.error);
+    clearTimeout(liveTimer);liveTimer=null;
+    const waits=[s.remaining>0?s.remaining+10:Infinity,...(s.snapshot?.quotes||[]).map(q=>Date.parse(q.quoteAt)+20*60000-Date.now()+1).filter(n=>n>0)];
+    const wait=Math.min(...waits);if(!s.leaving&&Number.isFinite(wait))liveTimer=setTimeout(renderIndices,wait); // Labels only; never polls.
+  }
   function el(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
   function tone(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral'; }
   async function json(url) {
@@ -91,7 +116,14 @@
       const { symbol,name,unit } = definition;
       const result = symbol==='SOX' ? sox : Object.hasOwn(core.DAILY_SERIES,symbol) ? core.dailySeriesForDate(state.extras[symbol],symbol,selectedDate)
         : core.indexForDate(state.snapshot?.indices,symbol,selectedDate);
-      const { record,status } = result;
+      const liveState=liveController.read();
+      let quote=live.forView(liveState.snapshot,symbol,selectedDate,state.latest);
+      // A matching previous session anchors the Composite alias to the saved IXIC feed.
+      if(quote&&symbol==='^IXIC'&&selectedDate&&quote.tradingDate&&core.previousSession(quote.tradingDate)===selectedDate){
+        const baseline=core.indexForDate(state.snapshot?.indices,symbol,selectedDate).record;
+        if(baseline&&Math.abs(quote.previousClose-baseline.close)>0.011)quote=null;
+      }
+      const { record,status } = quote ? {record:{close:quote.price,change:quote.change,date:quote.quoteDate},status:liveState.fromCache?'cached':'delayed'} : result;
       const box = el('div','index-tile');box.dataset.symbol=symbol;box.dataset.status=status;
       const updated = record?.fetchedAt || (Object.hasOwn(core.ACTIVE_INDEXES,symbol) ? state.snapshot?.updatedAt : null);
       box.title = (definition.english ? definition.english+' · '+symbol+'；' : '') + '来源：'+definition.source+'；口径：'+definition.basis
@@ -100,7 +132,7 @@
         + (record && record.change===null ? '；缺少前一有效交易期价格，不计算涨跌幅' : '')
         + ((symbol==='SOX'&&state.soxOffline)||state.extrasOffline[symbol] ? '；'+(symbol==='SOX'?state.soxProblem:state.extraProblems[symbol])+(record?'；使用已保存副本':'；当前设备无有效副本') : '');
       const hasChange = record && typeof record.change==='number' && Number.isFinite(record.change);
-      const change = el('strong','index-change '+(hasChange ? tone(record.change) : 'neutral'),hasChange ? core.percent(record.change) : record ? '—' : '暂无数据');
+      const change = el('strong','index-change '+(hasChange ? tone(record.change) : 'neutral'),hasChange ? core.percent(record.change) : record ? '—' : initializing ? '读取中…' : '暂无数据');
       const value = record ? record.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
       const close = el('span','index-close');close.append(el('span','index-point',value));
       if (unit) close.append(el('span','index-unit',unit));
@@ -110,13 +142,24 @@
         const date = el('span','index-actual-date',record.date);date.setAttribute('aria-label','实际数据日期：'+record.date);
         meta.append(el('span','index-delay','数据延迟'),date);meta.classList.add('index-warning');
       } else if (record && !hasChange) meta.textContent='缺前期价格';
+      if(quote){
+        const stamp=new Date(quote.quoteAt).toLocaleString('sv-SE',{timeZone:'America/New_York',hour12:false});
+        const old=Date.now()-Date.parse(quote.quoteAt)>20*60000;
+        meta.replaceChildren(el('span','',liveState.fromCache?'缓存报价':old?'较旧报价':'延迟报价'),el('time','',stamp.slice(0,4)===new Date().toLocaleString('sv-SE',{timeZone:'America/New_York'}).slice(0,4)?stamp.slice(5,16):stamp.slice(0,10)));
+        meta.querySelector('time').dateTime=quote.quoteAt;meta.classList.toggle('index-warning',liveState.fromCache||old);
+        box.title='来源：东方财富；指数最新延迟报价，非已确认日线收盘；相对昨收；昨收：'+quote.previousClose+'；纽约报价时间：'+stamp+'；获取时间：'+liveState.snapshot.fetchedAt
+          +'；'+(quote.tradingDate?'按纽约常规交易时段识别的交易日：'+quote.tradingDate:'交易日未确认，纽约报价日：'+quote.quoteDate)
+          +(symbol==='^IXIC'?'；纳斯达克综合指数 ^IXIC；东方财富源端别名100.NDX，非Nasdaq-100':'');
+        close.setAttribute('aria-label','最新报价 '+value);meta.title='纽约报价时间：'+stamp+'；此报价不属于行业历史快照日期';
+      }
       box.append(el('p','index-name',name),change,close,meta);return box;
     }),...window.USCommodities.cards());
     const link = (label,url)=>{const a=el('a','',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
     $('indices-note').replaceChildren(document.createTextNode('来源：FMP（标普/纳指） · FRED/Nasdaq（'),
       link('SOX',core.SOX.sourceUrl),document.createTextNode('/'),link('NBI',core.DAILY_SERIES.NBI.sourceUrl),
-      document.createTextNode('；'+core.SOX.copyright+'） · 东方财富（'),link('黄金',window.USCommodity.INSTRUMENTS.GC00Y.sourceUrl),document.createTextNode('/'),link('Brent',window.USCommodity.INSTRUMENTS.B00Y.sourceUrl),document.createTextNode('盘中延迟报价；版权归东方财富及相关权利人）'));
+      document.createTextNode('；'+core.SOX.copyright+'） · '),link('东方财富指数','https://quote.eastmoney.com/gb/zsSPX.html'),document.createTextNode('（延迟报价/纽约时间；收盘兜底来源如左）及商品（'),link('黄金',window.USCommodity.INSTRUMENTS.GC00Y.sourceUrl),document.createTextNode('/'),link('Brent',window.USCommodity.INSTRUMENTS.B00Y.sourceUrl),document.createTextNode('盘中延迟报价；版权归东方财富及相关权利人）'));
     window.USCommodities.setObservationDate(!!selectedDate && selectedDate !== state.latest);
+    liveControls();
   }
   function openRelated(sector) {
     state.sectorExchange = state.exchange;
@@ -329,11 +372,16 @@
     } catch (e) { $('mapping-message').textContent = e.message.includes('其他页面') ? e.message : '未能保存：请检查名称、关联数量（最多12项）及浏览器存储权限。原记录未改变。'; }
   }
   async function init() {
+    document.body.dataset.closeState='loading';
+    // Show a validated device copy before any await; fresh devices see an explicit loading state.
+    readCache();state.dates=Object.keys(state.cached.snapshots).sort().reverse();state.latest=state.dates[0]||null;
+    state.snapshot=state.cached.snapshots[state.latest]||null;
     renderIndices();
     try {
       state.config = await json(new URL('./mappings.json', location.href));
       if (state.config.version !== 1) throw new Error('关联配置版本不兼容');
-      readMappings(); readCache(); editorNames();
+      readMappings(); editorNames();
+      if(state.snapshot){render();$('data-status').textContent='已保存副本 · 正在校验线上收盘文件…';}
       try { const fresh=core.validateSox(await json(new URL('sox.json', DATA))); if(!fresh)throw new Error('日线为空或缺少有效记录'); state.sox=fresh; }
       catch (e) { state.soxOffline = true; state.soxProblem=e.message; }
       await Promise.all(['NBI'].map(async symbol=>{
@@ -354,6 +402,7 @@
       $('history-date').replaceChildren(...state.dates.map(date => { const option = el('option', '', date + (date === state.latest ? ' · 最新' : '')); option.value = date; return option; }));
       await selectDate(state.latest);
     } catch { $('data-status').textContent = '配置读取失败，请通过本地HTTP服务打开并检查工具文件是否完整。'; $('data-status').dataset.warning = 'true'; }
+    finally{initializing=false;document.body.dataset.closeState='ready';renderIndices();}
   }
   document.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => {
     state.kind = b.dataset.kind; state.relatedSector = '';
@@ -384,6 +433,10 @@
       readMappings(); editorNames(); render(); $('mapping-message').textContent = state.mappingLocked ? '其他页面的关联数据无法读取，已保护原记录。' : '关联已从其他页面同步。';
     }
   });
-  init();
+  $('refresh-indices').addEventListener('click',()=>liveController.refresh());
+  window.addEventListener('offline',()=>liveController.offline());
+  window.addEventListener('pagehide',()=>{liveController.leave();clearTimeout(liveTimer);liveTimer=null;});
+  window.addEventListener('pageshow',event=>{if(event.persisted)liveController.resume();});
+  init().then(()=>liveController.refresh());
   window.USCommodities.start();
 })();

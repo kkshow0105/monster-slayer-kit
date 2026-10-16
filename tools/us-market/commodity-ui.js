@@ -36,7 +36,7 @@
     const incomplete=s.snapshot?.quotes.some(q=>q.timeStatus!=='complete');
     const old=s.snapshot?.quotes.some(q=>q.quoteAt&&Date.now()-Date.parse(q.quoteAt)>20*60000);
     const scope=viewingHistory?'商品为最近一次盘中报价，不属于所选历史日。':'盘中延迟行情独立于股票日期。';
-    const message=s.loading?'正在获取黄金/原油；四个指数仍读收盘缓存。':s.error||(s.snapshot?'仅更新黄金/原油；'+scope:'仅更新黄金/原油；首次进入自动获取一次。');
+    const message=s.loading?'正在获取黄金/原油；不刷新四个指数。':s.error||(s.snapshot?'仅更新黄金/原油；'+scope:'仅更新黄金/原油；首次进入自动获取一次。');
     const text=[message];
     if(viewingHistory&&(s.loading||s.error||!s.snapshot))text.push(scope);
     if(s.fromCache&&s.snapshot)text.push('当前显示缓存行情，报价时间见卡片。');
