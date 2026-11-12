@@ -107,6 +107,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .calculator-shell { max-width: var(--page-width); }
 .calculator-main { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 .calculator-card { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface); }
+.calculator-card-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+/* Reserve the top reset area when the last currency input scrolls into view. */
+.calculator-card-actions ~ .currency-stack input { scroll-margin-top: 240px; }
 .price-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .price-b-group { min-width: 0; }
 .field-card { display: block; min-width: 0; color: var(--ink-soft); }
@@ -148,7 +151,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   color: var(--ink); background: var(--surface); font-size: 14px; line-height: 1.5; font-weight: 500;
   transition: background 140ms ease, border-color 140ms ease;
 }
-.clear-button { flex: 0 0 auto; color: var(--ink-soft); border-color: transparent; background: transparent; }
+.clear-button { flex: 0 0 auto; color: var(--ink-soft); border-color: transparent; background: transparent; font-size: 12px; }
 .clear-button svg, .refresh-button svg { width: 16px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 button:disabled { opacity: .5; cursor: default; }
 button:active:not(:disabled) { background: var(--surface-muted); }
@@ -173,6 +176,8 @@ button:active:not(:disabled) { background: var(--surface-muted); }
 .rate-detail > span:last-child { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .rate-detail > span:first-child { flex: 0 0 auto; }
 .refresh-button { width: 100%; color: var(--accent); }
+.currency-actions { display: flex; gap: 8px; }
+.currency-actions .refresh-button { flex: 1; width: auto; }
 /* Update notice stays in document flow so it cannot cover a focused field. */
 .pwa-update {
   max-width: calc(var(--page-width) - 32px); display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -184,8 +189,7 @@ button:active:not(:disabled) { background: var(--surface-muted); }
 @media (hover: hover) {
   .tool-card:hover { border-color: var(--line-strong); background: var(--surface-muted); }
   .back-link:hover { background: var(--accent-soft); }
-  .clear-button:hover:not(:disabled) { color: var(--down); background: var(--down-soft); }
-  .refresh-button:hover:not(:disabled), .atr-button:hover:not(:disabled) { background: var(--accent-soft); border-color: #c7d5f8; }
+  .clear-button:hover:not(:disabled), .refresh-button:hover:not(:disabled), .atr-button:hover:not(:disabled) { background: var(--accent-soft); border-color: #c7d5f8; }
 }
 @media (min-width: 768px) {
   .home-main, .calculator-main { padding-top: 24px; }

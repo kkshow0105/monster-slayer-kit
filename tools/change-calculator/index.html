@@ -33,7 +33,9 @@
         </section>
 
         <section class="calculator-card" aria-label="涨跌幅计算区域">
-
+          <div class="calculator-card-actions">
+            <button id="clear-button" class="clear-button" type="button" disabled>清空重置</button>
+          </div>
           <div class="price-row">
             <label class="field-card" data-field-card="a">
               <span class="field-head"><span>起始价格</span></span>
@@ -69,10 +71,6 @@
 
           <div class="status-row">
             <p id="status-message" class="status-message" aria-live="polite"></p>
-            <button id="clear-button" class="clear-button" type="button" disabled>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M9 7V5h6v2M8 10v7M12 10v7M16 10v7M7 7l1 13h8l1-13" /></svg>
-              清空
-            </button>
           </div>
         </section>
 

@@ -17,9 +17,11 @@
   const status = document.querySelector('#rate-status');
   const rateDate = document.querySelector('#rate-date');
   const refreshButton = document.querySelector('#refresh-rates');
+  const clearButton = document.querySelector('#clear-button');
   let rates = null;
   let sourceCurrency = null;
   let isRefreshing = false;
+  let rateStatus = { message: '正在获取最新参考汇率…', tone: '' };
 
   function parseAmount(raw) {
     const normalized = raw.trim().replace(/,/g, '');
@@ -52,11 +54,18 @@
       cards[currency].classList.toggle('is-derived', Boolean(sourceCurrency) && !isSource && fields[currency].value !== '');
       roles[currency].textContent = isSource ? '当前输入' : sourceCurrency && fields[currency].value !== '' ? '自动换算' : '';
     });
+    clearButton.disabled = !sourceCurrency && !currencies.some((currency) => fields[currency].value !== '');
   }
 
   function setStatus(message, tone = '') {
     status.textContent = message;
     status.dataset.tone = tone;
+  }
+
+  function setRateStatus(message, tone = '') {
+    // 保留汇率获取状态，清空金额时只移除输入错误，不丢失来源提示。
+    rateStatus = { message, tone };
+    setStatus(message, tone);
   }
 
   function updateRateDetails() {
@@ -144,7 +153,7 @@
     if (isRefreshing) return;
     isRefreshing = true;
     refreshButton.disabled = true;
-    setStatus('正在获取最新参考汇率…');
+    setRateStatus('正在获取最新参考汇率…');
     try {
       const [jpy, usd] = await Promise.all([responseRate('JPY'), responseRate('USD')]);
       rates = {
@@ -156,19 +165,19 @@
       };
       saveRates(rates);
       updateRateDetails();
-      setStatus('已获取最新参考汇率', 'up');
+      setRateStatus('已获取最新参考汇率', 'up');
       if (sourceCurrency && fields[sourceCurrency].value.trim()) calculateFrom(sourceCurrency);
     } catch {
       const cachedRates = readCachedRates();
       if (cachedRates) {
         rates = cachedRates;
         updateRateDetails();
-        setStatus('当前离线 · 使用缓存汇率', 'flat');
+        setRateStatus('当前离线 · 使用缓存汇率', 'flat');
         if (sourceCurrency && fields[sourceCurrency].value.trim()) calculateFrom(sourceCurrency);
       } else {
         rates = null;
         updateRateDetails();
-        setStatus('暂时无法获取汇率，请联网后重试。', 'error');
+        setRateStatus('暂时无法获取汇率，请联网后重试。', 'error');
       }
     } finally {
       isRefreshing = false;
@@ -190,6 +199,12 @@
   });
 
   refreshButton.addEventListener('click', refreshRates);
+  clearButton.addEventListener('click', () => {
+    currencies.forEach((currency) => { fields[currency].value = ''; });
+    sourceCurrency = null;
+    updateFieldState();
+    setStatus(rateStatus.message, rateStatus.tone);
+  });
   updateFieldState();
   refreshRates();
 })();

@@ -1,5 +1,5 @@
 // 发布新版本时只需递增这里的版本号，并把整个项目一起上传。
-const APP_VERSION = 'v1.4.0-dev.13';
+const APP_VERSION = 'v1.4.0-dev.21';
 const CACHE_PREFIX = `monster-slayer-kit:${encodeURIComponent(self.registration.scope)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const APP_SHELL = [
@@ -20,13 +20,6 @@ const APP_SHELL = [
   './tools/atr-calculator/atr-calculator.js',
   './tools/atr-calculator/atr-calculator.css',
   './tools/us-market/index.html',
-  './tools/us-market/market-core.js',
-  './tools/us-market/us-market.js',
-  './tools/us-market/remote-data.js',
-  './tools/us-market/commodity-core.js',
-  './tools/us-market/commodity-ui.js',
-  './tools/us-market/us-market.css',
-  './tools/us-market/mappings.json',
 ];
 
 self.addEventListener('install', (event) => {

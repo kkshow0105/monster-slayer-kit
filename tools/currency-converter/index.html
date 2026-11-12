@@ -33,6 +33,9 @@
         </section>
 
         <section class="calculator-card currency-card" aria-label="汇率计算区域">
+          <div class="calculator-card-actions">
+            <button id="clear-button" class="clear-button" type="button" disabled>清空重置</button>
+          </div>
           <div class="currency-stack">
             <label class="field-card currency-field" data-field-card="JPY">
               <span class="field-head"><span>JPY</span><small>日元</small></span>
@@ -67,10 +70,12 @@
               <p id="rate-status" class="status-message" aria-live="polite">正在获取最新参考汇率…</p>
               <div id="rate-date" class="rate-date" aria-live="polite">汇率日期：--</div>
             </div>
-            <button id="refresh-rates" class="refresh-button" type="button">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-4M4 5v4h4M4 13a8 8 0 0 0 14.9 4M20 19v-4h-4" /></svg>
-              刷新汇率
-            </button>
+            <div class="currency-actions">
+              <button id="refresh-rates" class="refresh-button" type="button">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-4M4 5v4h4M4 13a8 8 0 0 0 14.9 4M20 19v-4h-4" /></svg>
+                刷新汇率
+              </button>
+            </div>
           </div>
         </section>
 

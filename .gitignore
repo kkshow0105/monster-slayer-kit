@@ -1,9 +1,14 @@
-# Local-only market data, request ledger and test artifacts. Never publish.
+# Local-only data and test artifacts. Never publish.
 /local-data/
 /.env
 /.env.*
 !.env.example
 
-# Disposable site output; public-data/ is intentionally tracked.
+# Disposable site output.
 /dist/
 /.site-build-*/
+
+/node_modules/
+
+# Source import kept locally for version comparison.
+/_import/

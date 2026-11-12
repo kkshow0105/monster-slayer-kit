@@ -10,7 +10,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '..');
 const storageKey = 'monster-slayer-kit:atr-plans:v1';
 
-async function withBrowser(run) {
+async function withBrowser(run, contextOptions = {}) {
   const server = http.createServer(async (request, response) => {
     try {
       let pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
@@ -28,14 +28,17 @@ async function withBrowser(run) {
   let browser;
   try {
     browser = await chromium.launch({ channel: 'msedge', headless: true });
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
-    const network = { failing: false };
-    await context.route('https://api.frankfurter.dev/**', (route) => route.fulfill({
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...contextOptions });
+    const network = { failing: false, requests: 0 };
+    await context.route('https://api.frankfurter.dev/**', (route) => {
+      network.requests += 1;
+      return route.fulfill({
       status: network.failing ? 503 : 200,
       contentType: 'application/json', body: JSON.stringify({
         rate: route.request().url().includes('/JPY/') ? 0.05 : 7, date: '2026-10-13',
       }),
-    }));
+      });
+    });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
@@ -103,15 +106,18 @@ test('统一UI：四页响应式、首屏操作、触控尺寸与手机截图', 
         assert.ok(heading.font >= 24 && heading.font <= 28);
         if (name === 'home') {
           const bottom = await page.locator('.tool-card').nth(2).evaluate((node) => node.getBoundingClientRect().bottom);
-          assert.ok(bottom <= viewport.height, 'all three tools fit the first viewport');
+          assert.ok(bottom <= viewport.height, 'three original tools fit the first viewport');
+          assert.equal(await page.locator('.tools-section .tool-card').count(), 4);
           for (const card of await page.locator('.tool-card').all()) {
             const box = await card.boundingBox();
             assert.ok(box.height >= 88 && box.height <= 108);
           }
         }
         if (name === 'change' || name === 'currency') {
-          const bottom = await page.locator('.status-row').evaluate((node) => node.getBoundingClientRect().bottom);
+          const bottom = await page.locator('.calculator-card input').last().evaluate((node) => node.getBoundingClientRect().bottom);
           assert.ok(bottom <= viewport.height, name + ' primary controls fit the viewport');
+          const resetBottom = await page.locator('#clear-button').evaluate((node) => node.getBoundingClientRect().bottom);
+          assert.ok(resetBottom <= viewport.height, name + ' reset fits the viewport');
         }
         if (name === 'atr-new') {
           assert.equal(await page.locator('#new-plan').isVisible(), true);
@@ -488,5 +494,202 @@ test('ATR已结束文案：未执行、历史参考、异常历史及数据不�
     assert.equal(await page.locator('[data-execution-level="1"]').getByRole('button', { name: '确认补仓', exact: true }).isEnabled(), true);
     assert.equal(await page.locator('[data-execution-level="2"]').getByRole('button', { name: '确认补仓', exact: true }).isDisabled(), true);
     assert.equal(await page.evaluate((key) => localStorage.getItem(key), storageKey), raw);
+  });
+});
+
+
+test('顶部重置：两页手机触控、输入布局和聚焦后缩小可视区域', { timeout: 120000 }, async () => {
+  await withBrowser(async ({ page, origin, shot, network }) => {
+    let resetStyle;
+    for (const tool of ['change-calculator', 'currency-converter']) {
+      await page.goto(origin + '/tools/' + tool + '/index.html');
+      if (tool === 'currency-converter') await page.waitForFunction(() => document.querySelector('#rate-status').textContent.includes('已获取'));
+      assert.equal(await page.getByRole('button', { name: '清空重置', exact: true }).count(), 1);
+      assert.equal(await page.locator('.calculator-card > :first-child #clear-button').count(), 1);
+      assert.equal(await page.locator('.status-row #clear-button').count(), 0);
+      if (tool === 'currency-converter') assert.equal(await page.locator('.currency-actions #refresh-rates').count(), 1);
+      const style = await page.locator('#clear-button').evaluate(node => {
+        const s = getComputedStyle(node);
+        return { color: s.color, background: s.backgroundColor, fontSize: s.fontSize, borderColor: s.borderColor, position: s.position };
+      });
+      assert.notEqual(style.position, 'fixed');
+      if (resetStyle) assert.deepEqual(style, resetStyle);
+      else resetStyle = style;
+      const inputs = page.locator('.calculator-card input');
+      for (const [width, height] of [[320, 568], [375, 812], [390, 844], [430, 932]]) {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        const button = page.locator('#clear-button');
+        const bounds = await button.boundingBox();
+        const card = await page.locator('.calculator-card').boundingBox();
+        const first = await inputs.first().boundingBox();
+        assert.ok(bounds.width >= 44 && bounds.height >= 44);
+        assert.ok(bounds.y >= card.y && bounds.y + bounds.height <= first.y);
+        assert.ok(Math.abs(card.x + card.width - (bounds.x + bounds.width) - 17) <= 1);
+        if (tool === 'change-calculator') {
+          const a = await inputs.nth(0).boundingBox(), b = await inputs.nth(1).boundingBox(), c = await inputs.nth(2).boundingBox();
+          assert.equal(a.y, b.y);
+          assert.equal(a.width, b.width);
+          assert.ok(c.y > a.y);
+        }
+        for (const input of await inputs.all()) {
+          await input.fill('10');
+          await page.setViewportSize({ width, height: 360 });
+          await input.focus();
+          await input.scrollIntoViewIfNeeded();
+          const visible = await button.evaluate(node => {
+            const r = node.getBoundingClientRect(), viewport = window.visualViewport;
+            const top = viewport?.offsetTop || 0, bottom = top + (viewport?.height || innerHeight);
+            return { top: r.top, bottom: r.bottom, visibleTop: top, visibleBottom: bottom,
+              unobstructed: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === node };
+          });
+          assert.ok(visible.top >= visible.visibleTop && visible.bottom <= visible.visibleBottom, JSON.stringify({ tool, width, visible }));
+          assert.equal(visible.unobstructed, true);
+          if (width === 390) await shot(tool + '-focused-compact-viewport', false);
+          const requests = network.requests;
+          await button.tap();
+          assert.deepEqual(await inputs.evaluateAll(nodes => nodes.map(n => n.value)), ['', '', '']);
+          assert.equal(network.requests, requests);
+          await page.setViewportSize({ width, height });
+          await page.evaluate(() => window.scrollTo(0, 0));
+        }
+        await checkLayout(page);
+        if (width === 390) {
+          await inputs.first().fill(tool === 'currency-converter' ? '1400' : '100');
+          if (tool === 'change-calculator') await inputs.nth(1).fill('110');
+          await shot(tool + '-reset-top-mobile', false);
+          await button.tap();
+        }
+      }
+      await page.reload();
+      assert.equal(await page.locator('.calculator-card-actions #clear-button').count(), 1);
+    }
+  }, { isMobile: true, hasTouch: true });
+});
+
+test('涨跌幅清空重置：三种反推、辅助结果、错误及编辑角色全部恢复', { timeout: 120000 }, async () => {
+  await withBrowser(async ({ page, origin }) => {
+    await page.goto(origin + '/tools/change-calculator/index.html');
+    const readState = () => page.evaluate(() => ({
+      values: [...document.querySelectorAll('.calculator-card input')].map((node) => node.value),
+      cards: [...document.querySelectorAll('.field-card')].map((node) => node.className),
+      roles: [...document.querySelectorAll('.field-role')].map((node) => node.textContent),
+      status: document.querySelector('#status-message').textContent,
+      tone: document.querySelector('#status-message').dataset.tone || '',
+      dropHidden: document.querySelector('#price-b-drop').hidden,
+      dropValue: document.querySelector('#price-b-drop-value').textContent,
+      disabled: document.querySelector('#clear-button').disabled,
+    }));
+    const initial = await readState();
+    assert.deepEqual(initial.values, ['', '', '']);
+    assert.equal(await page.getByRole('button', { name: '清空重置', exact: true }).count(), 1);
+    for (const [width, height, first, second, derived, expected] of [
+      [390, 844, ['price-a', '10'], ['price-b', '11'], 'change-c', '+10'],
+      [320, 568, ['price-a', '10'], ['change-c', '-10'], 'price-b', '9'],
+      [1280, 900, ['price-b', '11'], ['change-c', '10'], 'price-a', '10'],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.locator('#' + first[0]).fill(first[1]);
+      // 清空后只输入一项时，不得按旧的最近编辑字段自动计算。
+      assert.equal(await page.locator('#' + derived).inputValue(), '');
+      await page.locator('#' + second[0]).fill(second[1]);
+      assert.equal(await page.locator('#' + derived).inputValue(), expected);
+      assert.equal(await page.locator('#price-b-drop').isVisible(), true);
+      await checkLayout(page);
+      await page.locator('#clear-button').click();
+      assert.deepEqual(await readState(), initial);
+    }
+    for (const [a, b] of [['0', '11'], ['abc', '11'], ['-1', '11']]) {
+      await page.locator('#price-a').fill(a);
+      await page.locator('#price-b').fill(b);
+      assert.equal(await page.locator('#status-message').getAttribute('data-tone'), 'error');
+      await page.locator('#clear-button').click();
+      assert.deepEqual(await readState(), initial);
+    }
+    await page.locator('#change-c').fill('20');
+    assert.equal(await page.locator('#price-a').inputValue(), '');
+    await page.locator('#price-a').fill('10');
+    assert.equal(await page.locator('#price-b').inputValue(), '12');
+    await page.reload();
+    assert.deepEqual(await readState(), initial);
+  });
+});
+
+test('汇率清空重置：三币种重新输入、缓存日期来源保留且不请求接口', { timeout: 120000 }, async () => {
+  await withBrowser(async ({ page, origin, network }) => {
+    await page.goto(origin + '/tools/currency-converter/index.html');
+    await page.waitForFunction(() => document.querySelector('#rate-status').textContent.includes('已获取'));
+    const cacheKey = 'monster-slayer-kit:currency-rates:v1';
+    const plan = core.createPlan({ name: '重置保护测试', code: '588000', price: '1.108', atr: '.043',
+      period: '14', openingPosition: '10', levels: [{ multiplier: '.4', position: '10' }] },
+    'reset-protection', '2026-10-14T01:00:00.000Z');
+    await page.evaluate(({ key, plan }) => localStorage.setItem(key, JSON.stringify({ version: 2, plans: [plan] })),
+      { key: storageKey, plan });
+    const readState = () => page.evaluate(() => ({
+      values: [...document.querySelectorAll('.currency-field input')].map((node) => node.value),
+      cards: [...document.querySelectorAll('.currency-field')].map((node) => node.className),
+      roles: [...document.querySelectorAll('.field-role')].map((node) => node.textContent),
+      status: document.querySelector('#rate-status').textContent,
+      tone: document.querySelector('#rate-status').dataset.tone,
+      details: document.querySelector('#rate-date').innerHTML,
+      storage: Object.fromEntries(Object.keys(localStorage).sort().map((key) => [key, localStorage.getItem(key)])),
+      disabled: document.querySelector('#clear-button').disabled,
+    }));
+    const initial = await readState();
+    assert.deepEqual(initial.values, ['', '', '']);
+    assert.match(initial.details, /2026-10-13/);
+    assert.ok(initial.storage[cacheKey]);
+    assert.equal(await page.getByRole('button', { name: '清空重置', exact: true }).count(), 1);
+    const reset = async (expected) => {
+      const requests = network.requests;
+      await page.locator('#clear-button').click();
+      assert.deepEqual(await readState(), expected);
+      assert.equal(network.requests, requests, 'reset must not fetch exchange rates');
+    };
+    for (const [width, height, currency, value] of [
+      [390, 844, 'jpy', '1400'], [320, 568, 'cny', '70'], [1280, 900, 'usd', '10'],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.locator('#amount-' + currency).fill(value);
+      assert.deepEqual((await readState()).values, ['1400', '70', '10']);
+      assert.equal(await page.locator('.currency-field.is-source').count(), 1);
+      assert.equal(await page.locator('.currency-field.is-derived').count(), 2);
+      await checkLayout(page);
+      await reset(initial);
+    }
+    await page.locator('#amount-usd').fill('0');
+    assert.deepEqual((await readState()).values, ['0', '0', '0']);
+    await reset(initial);
+    await page.locator('#amount-cny').fill('abc');
+    assert.match(await page.locator('#rate-status').textContent(), /有效/);
+    await reset(initial);
+    // 空输入框获得焦点后，重置也应清除当前输入币种的激活状态。
+    await page.locator('#amount-jpy').focus();
+    assert.equal(await page.locator('.currency-field.is-source').count(), 1);
+    await reset(initial);
+
+    network.failing = true;
+    await page.locator('#refresh-rates').click();
+    await page.waitForFunction(() => document.querySelector('#rate-status').textContent.includes('使用缓存'));
+    const cached = await readState();
+    assert.deepEqual(cached.storage, initial.storage);
+    assert.equal(cached.details, initial.details);
+    await page.locator('#amount-jpy').fill('abc');
+    await reset(cached);
+    await page.locator('#amount-usd').fill('10');
+    assert.deepEqual((await readState()).values, ['1400', '70', '10']);
+    await reset(cached);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('#rate-status').textContent.includes('使用缓存'));
+    assert.deepEqual(await readState(), cached);
+
+    // 仅删除本测试隔离浏览器中的虚构缓存，验证失败提示也不会被金额重置抹掉。
+    await page.evaluate((key) => localStorage.removeItem(key), cacheKey);
+    await page.locator('#refresh-rates').click();
+    await page.waitForFunction(() => document.querySelector('#rate-status').textContent.includes('无法获取'));
+    const unavailable = await readState();
+    await page.locator('#amount-cny').fill('10');
+    await reset(unavailable);
+    assert.equal((await readState()).storage[storageKey], initial.storage[storageKey]);
   });
 });
